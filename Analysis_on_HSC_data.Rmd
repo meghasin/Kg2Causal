@@ -283,10 +283,19 @@ p = ggplot() +     geom_line(data = fscore_HSC, aes(x=Cutoff,y=Precision.Recall.
 plot(p)
 dev.off() 
 ```
+
+
 ```{r}
 dag.mbde<-averaged.network(intscore_HSC_prior, threshold = .85)
-graphviz.plot(dag_HSC_groundtruth)
-graphviz.plot(dag.mbde)
-compare(dag_HSC_groundtruth,dag.mbde)
+
+a = compare(skeleton(dag_HSC_groundtruth),skeleton(dag.mbde),  arcs = TRUE)
+HSC_causal_skeleton = empty.graph(c('Gata1', 'Fli1', 'Cebpa' ,'Pu1', 'Gata2', 'cJun', 'Gfi1', 'EgrNab', 'Fog1', 'Eklf', 'Scl'),num=1)
+arcs(HSC_causal_skeleton,check.cycles=FALSE)=a$tp 
+
+a= compare((dag_HSC_groundtruth),(dag.mbde),  arcs = TRUE)
+HSC_causal = empty.graph(c('Gata1', 'Fli1', 'Cebpa' ,'Pu1', 'Gata2', 'cJun', 'Gfi1', 'EgrNab', 'Fog1', 'Eklf', 'Scl'),num=1)
+arcs(HSC_causal,check.cycles=FALSE)=a$tp
+
+graphviz.compare(HSC_causal_skeleton, HSC_causal)
 ```
 

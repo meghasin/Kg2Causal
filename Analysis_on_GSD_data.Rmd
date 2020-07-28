@@ -301,9 +301,16 @@ dev.off()
 ```
 ```{r}
 dag.mbde<-averaged.network(intscore_GSD_prior, threshold = .85)
-graphviz.plot(dag.GSD_groundtruth)
-graphviz.plot(dag.mbde)
-compare(dag.GSD_groundtruth,dag.mbde)
+
+a= compare(skeleton(dag.GSD_groundtruth),skeleton(dag.mbde),  arcs = TRUE)
+GSD_causal_skeleton = empty.graph(c('AMH','CBX2','CTNNB1','DHH','DKK1','DMRT1','FGF9','FOXL2','GATA4','NR0B1','NR5A1','PGD2','RSPO1','SOX9','SRY','UGR','WNT4','WT1mKTS','WT1pKTS'),num=1)
+arcs(GSD_causal_skeleton,check.cycles=FALSE)=a$tp 
+
+a= compare((dag.GSD_groundtruth),(dag.mbde),  arcs = TRUE)
+GSD_causal = empty.graph(c('AMH','CBX2','CTNNB1','DHH','DKK1','DMRT1','FGF9','FOXL2','GATA4','NR0B1','NR5A1','PGD2','RSPO1','SOX9','SRY','UGR','WNT4','WT1mKTS','WT1pKTS'),num=1)
+arcs(GSD_causal,check.cycles=FALSE)=a$tp
+
+graphviz.compare(GSD_causal_skeleton,GSD_causal)
 ```
 
 

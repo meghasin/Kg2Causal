@@ -192,7 +192,14 @@ dev.off()
 ```
 ```{r}
 dag.mbde<-averaged.network(intscore_sachs_prior, threshold = .85)
-graphviz.plot(dag.sachs_groundtruth)
-graphviz.plot(dag.mbde)
-compare(dag.sachs_groundtruth,dag.mbde)
+
+a = compare(skeleton(dag.sachs_groundtruth),skeleton(dag.mbde),  arcs = TRUE)
+Sachs_causal_skeleton = empty.graph(c("praf", "pmek", "plcg", "PIP2", "PIP3", "p44.42", "pakts473", "PKA", "PKC", "P38", "pjnk"  ),num=1)
+arcs(Sachs_causal_skeleton,check.cycles=FALSE)=a$tp 
+
+a= compare((dag.sachs_groundtruth),(dag.mbde),  arcs = TRUE)
+Sachs_causal = empty.graph(c("praf", "pmek", "plcg", "PIP2", "PIP3", "p44.42", "pakts473", "PKA", "PKC", "P38", "pjnk"  ),num=1)
+arcs(Sachs_causal,check.cycles=FALSE)=a$tp
+
+graphviz.compare(Sachs_causal_skeleton, Sachs_causal)
 ```
