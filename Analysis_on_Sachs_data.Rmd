@@ -1,0 +1,198 @@
+---
+title: "Analysis on Sachs dataset"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+#install.packages("knitr")
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#install.packages("bnlearn")
+library(bnlearn)
+source("http://bioconductor.org/biocLite.R")
+biocLite("Rgraphviz")
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install()
+BiocManager::install(c("Rgraphviz"))
+library(Rgraphviz)
+library(ggplot2)
+install.packages("pcalg")
+source("http://bioconductor.org/biocLite.R") 
+BiocManager::install(c("RBGL"))
+library(RBGL)
+library(pcalg)
+library(ROCR)
+library(PRROC)
+```
+
+
+```{r}
+INT<-sapply(1:11,function(x){which(isachs$INT==x)})
+nodes<-names(isachs)[1:11]
+names(INT)<-nodes
+
+#start<-random.graph(nodes=nodes,method="melancon",num=100,burn.in=10^1, every=50)
+#start_sachs <- start
+netlist<-lapply(start_sachs,function(net){tabu(isachs[,1:11],score="mbde",exp=INT,iss=1,start=net,tabu=50)})
+intscore_sachs<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
+dag.mbde_sachs<-averaged.network(intscore_sachs)
+graphviz.plot(dag.mbde_sachs)
+
+pred <- prediction(intscore_sachs[,3], labels_sachs[,3])
+perf_sachs <- performance(pred,"tpr","fpr")
+auc_sachs <- performance(pred,"auc")
+
+knowledge_scores <- intscore[,1:3]
+
+knowledge_scores$strength[c(1,5,6,8,10,11,15,16,19,20,26,28,51,52,56,58,60,61,62,63,66,67,68,69,70,77,78,81,83,87,88,90,92,97,101,102,106,107,109)] <- 0.5
+
+beta <- data.frame(from=knowledge_scores[,1], to = knowledge_scores[,2], prob=knowledge_scores[,3],stringsAsFactors = FALSE)
+netlist_prior<-lapply(start,function(net){tabu(isachs[,1:11],score="mbde", prior = "cs",beta=beta,exp=INT,iss=1,start=net,tabu=50)})
+
+netlist_prior_marginal<-lapply(start,function(net){tabu(isachs[,1:11],score="mbde", prior = "marginal",exp=INT,iss=1,start=net,tabu=50)})
+
+netlist_prior_vsp<-lapply(start,function(net){tabu(isachs[,1:11],score="mbde", prior = "vsp",exp=INT,iss=1,start=net,tabu=50)})
+
+
+
+intscore_sachs_prior<-custom.strength(netlist_prior,nodes=nodes,cpdag=FALSE)
+
+intscore_sachs_prior_marginal<-custom.strength(netlist_prior_marginal,nodes=nodes,cpdag=FALSE)
+
+intscore_sachs_prior_vsp<-custom.strength(netlist_prior_vsp,nodes=nodes,cpdag=FALSE)
+```
+
+```{r}
+#..............finding the labels from the groundtruth networks...............
+sachs_groundtruth <- read.csv("data/Sachs/refNetwork.csv", header = TRUE)
+labels_sachs <- intscore[,1:3]
+labels_sachs[,3] <- 0
+merge_sachs <- merge(intscore_sachs,sachs_groundtruth,by.x=c('from','to'),by.y=c('Gene1','Gene2'),all.x=TRUE)
+
+
+for (i in 1:nrow(merge_sachs)){
+  if (!is.na(merge_sachs[i,5])){
+    from = merge_sachs[i,1]
+    to = merge_sachs[i,2]
+  }
+  labels_sachs[which((labels_sachs$from %in% to) & (labels_sachs$to %in% from)),3] <- 1
+}
+
+for (i in 1:nrow(labels_sachs)){
+  if (labels_sachs[i,3]==1){
+    from = labels_sachs[i,1]
+    to = labels_sachs[i,2]
+    labels_sachs[which((labels_sachs$from %in% from) & (labels_sachs$to %in% to)),][3] <- 1
+  }
+}
+```
+```{r}
+#.................ROC curve analysis for Sachs Data...........................
+PRROC_obj1 <- roc.curve(scores.class0 = intscore_sachs[,3], weights.class0=labels_sachs[,3],curve=TRUE)
+PRROC_obj2 <- roc.curve(scores.class0 = intscore_sachs_prior[,3], weights.class0=labels_sachs[,3],curve=TRUE)
+PRROC_obj3 <- roc.curve(scores.class0 = intscore_sachs_prior_marginal[,3], weights.class0=labels_sachs[,3],curve=TRUE)
+PRROC_obj4 <- roc.curve(scores.class0 = intscore_sachs_prior_vsp[,3], weights.class0=labels_sachs[,3],curve=TRUE)
+```
+```{r}
+#.................ROC curve plot for Sachs Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/sachsROC.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
+  geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('FP rate') + ylab('TP rate') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()
+       
+```
+```{r}
+#.................PR curve analysis for Sachs Data...........................
+PRROC_obj1 <- pr.curve(scores.class0 = intscore_sachs[,3], weights.class0=labels_sachs[,3],curve=TRUE)
+PRROC_obj2 <- pr.curve(scores.class0 = intscore_sachs_prior[,3], weights.class0=labels_sachs[,3],curve=TRUE)
+PRROC_obj3 <- pr.curve(scores.class0 = intscore_sachs_prior_marginal[,3], weights.class0=labels_sachs[,3],curve=TRUE)
+PRROC_obj4 <- pr.curve(scores.class0 = intscore_sachs_prior_vsp[,3], weights.class0=labels_sachs[,3],curve=TRUE)
+```
+```{r}
+#.................PR curve plot for Sachs Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/sachsPR.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
+  geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('Recall') + ylab('Precision') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()
+       
+```
+```{r}
+#.................F1 score vs cutoff analysis for Sachs Data...........................
+pred <- prediction(intscore_sachs[,3], labels_sachs[,3])
+f_sachs <- performance(pred,"f")
+fscore_sachs = data.frame("Cutoff"=f_sachs@x.values[[1]],"Precision-Recall F measure"=f_sachs@y.values[[1]])
+
+pred <- prediction(intscore_sachs_prior[,3], labels_sachs[,3])
+f_sachs <- performance(pred,"f")
+fscore_sachs_prior = data.frame("Cutoff"=f_sachs@x.values[[1]],"Precision-Recall F measure"=f_sachs@y.values[[1]])
+
+pred <- prediction(intscore_sachs_prior_marginal[,3], labels_sachs[,3])
+f_sachs <- performance(pred,"f")
+fscore_sachs_marginal = data.frame("Cutoff"=f_sachs@x.values[[1]],"Precision-Recall F measure"=f_sachs@y.values[[1]])
+
+pred <- prediction(intscore_sachs_prior_vsp[,3], labels_sachs[,3])
+f_sachs <- performance(pred,"f")
+fscore_sachs_vsp = data.frame("Cutoff"=f_sachs@x.values[[1]],"Precision-Recall F measure"=f_sachs@y.values[[1]])
+```
+```{r}
+#.................F1 score vs cutoff plotting for Sachs Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/sachsF1.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = fscore_sachs, aes(x=Cutoff,y=Precision.Recall.F.measure,color="red")) + geom_line(data = fscore_sachs_prior, aes(x=Cutoff,y=Precision.Recall.F.measure,color = "blue")) + 
+  geom_line(data = data.frame(fscore_sachs_marginal), aes(x=Cutoff,y=Precision.Recall.F.measure,color="green"))+
+  geom_line(data = data.frame(fscore_sachs_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('F1 measure') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()
+```
+
+
+```{r}
+#.................accuracy vs cutoff analysis for Sachs Data.....................
+pred <- prediction(intscore_sachs[,3], labels_sachs[,3])
+f_sachs <- performance(pred,"acc")
+fscore_sachs = data.frame("Cutoff"=f_sachs@x.values[[1]],"Precision-Recall F measure"=f_sachs@y.values[[1]])
+
+
+pred <- prediction(intscore_sachs_prior[,3], labels_sachs[,3])
+f_sachs <- performance(pred,"acc")
+fscore_sachs_prior = data.frame("Cutoff"=f_sachs@x.values[[1]],"Precision-Recall F measure"=f_sachs@y.values[[1]])
+
+pred <- prediction(intscore_sachs_prior_marginal[,3], labels_sachs[,3])
+f_sachs <- performance(pred,"acc")
+fscore_sachs_marginal = data.frame("Cutoff"=f_sachs@x.values[[1]],"Precision-Recall F measure"=f_sachs@y.values[[1]])
+
+
+pred <- prediction(intscore_sachs_prior_vsp[,3], labels_sachs[,3])
+f_sachs <- performance(pred,"acc")
+fscore_sachs_vsp = data.frame("Cutoff"=f_sachs@x.values[[1]],"Precision-Recall F measure"=f_sachs@y.values[[1]])
+```
+
+```{r}
+#.................accuracy vs cutoff plotting for Sachs Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/sachsAcc.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = fscore_sachs, aes(x=Cutoff,y=Precision.Recall.F.measure,color="red")) + geom_line(data = fscore_sachs_prior, aes(x=Cutoff,y=Precision.Recall.F.measure,color = "blue")) + 
+  geom_line(data = data.frame(fscore_sachs_marginal), aes(x=Cutoff,y=Precision.Recall.F.measure,color="green"))+
+  geom_line(data = data.frame(fscore_sachs_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('Accuracy') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()       
+```
+```{r}
+dag.mbde<-averaged.network(intscore_sachs_prior, threshold = .85)
+graphviz.plot(dag.sachs_groundtruth)
+graphviz.plot(dag.mbde)
+compare(dag.sachs_groundtruth,dag.mbde)
+```

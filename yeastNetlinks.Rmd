@@ -1,0 +1,97 @@
+---
+title: "yeast"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+YeastNet <- read.table("data/YeastNet.v3.txt",sep="\t")
+yeastgene <- c("YLR131C","YKL185W","YBR243C","YGL116W","YMR001C","YJL194W","YOR074C","YPR119W","YPR120C","YMR199W","YPL256C","YLR286C","YNL327W","YJL157C","YIL131C","YDR225W","YDL056W","YMR043W","YOR372C","YDL127W","YLR079W","YNL309W","YER111C","YDR146C","YLR182W","YBR160W","YGR109C","YAL040C","YBL016W","YNL068C")
+Links_YeastNet <- YeastNet[(YeastNet$V1 %in% yeastgene) & (YeastNet$V2 %in% yeastgene), ]
+Links_YeastNet <- Links_YeastNet[1:2]
+```
+
+
+
+```{r}
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YLR131C", "ACE2")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YKL185W", "ASH1")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YBR243C", "ALG7")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YGL116W", "CDC20")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YMR001C", "CDC5")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YJL194W", "CDC6")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YOR074C", "CDC21")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YPR119W", "CLB2")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YPR120C", "CLB5")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YMR199W", "CLN1")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YPL256C", "CLN2")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YLR286C", "CTS1")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YNL327W", "EGT2")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YJL157C", "FAR1")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YIL131C", "FKH1")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YDR225W", "HTA1")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YDL056W", "MBP1")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YMR043W", "MCM1")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YOR372C", "NDD1")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YDL127W", "PCL2")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YLR079W", "SIC1")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YNL309W", "STB1")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YER111C", "SWI4")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YDR146C", "SWI5")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YLR182W", "SWI6")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YBR160W", "CDC28")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YGR109C", "CLB6")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YAL040C", "CLN3")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YBL016W", "FUS3")
+Links_YeastNet$V1 <- replace(as.character(Links_YeastNet$V1), Links_YeastNet$V1 == "YNL068C", "FKH2")
+
+
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YLR131C", "ACE2")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YKL185W", "ASH1")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YBR243C", "ALG7")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YGL116W", "CDC20")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YMR001C", "CDC5")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YJL194W", "CDC6")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YOR074C", "CDC21")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YPR119W", "CLB2")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YPR120C", "CLB5")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YMR199W", "CLN1")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YPL256C", "CLN2")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YLR286C", "CTS1")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YNL327W", "EGT2")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YJL157C", "FAR1")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YIL131C", "FKH1")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YDR225W", "HTA1")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YDL056W", "MBP1")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YMR043W", "MCM1")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YOR372C", "NDD1")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YDL127W", "PCL2")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YLR079W", "SIC1")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YNL309W", "STB1")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YER111C", "SWI4")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YDR146C", "SWI5")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YLR182W", "SWI6")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YBR160W", "CDC28")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YGR109C", "CLB6")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YAL040C", "CLN3")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YBL016W", "FUS3")
+Links_YeastNet$V2 <- replace(as.character(Links_YeastNet$V2), Links_YeastNet$V2 == "YNL068C", "FKH2")
+
+
+
+
+
+```
+
+```{r}
+YeastNetCX <- read.table("data/Yeast/INT.CX.YeastNet.v3.5730gene.242504link.txt",sep="\t")
+yeastgene <- c("YLR131C","YKL185W","YBR243C","YGL116W","YMR001C","YJL194W","YOR074C","YPR119W","YPR120C","YMR199W","YPL256C","YLR286C","YNL327W","YJL157C","YIL131C","YDR225W","YDL056W","YMR043W","YOR372C","YDL127W","YLR079W","YNL309W","YER111C","YDR146C","YLR182W","YBR160W","YGR109C","YAL040C","YBL016W","YNL068C")
+Links_YeastNetCX <- YeastNetCX[(YeastNetCX$V1 %in% yeastgene) & (YeastNetCX$V2 %in% yeastgene), ]
+Links_YeastNetCX <- Links_YeastNetCX[1:2]
+
+```

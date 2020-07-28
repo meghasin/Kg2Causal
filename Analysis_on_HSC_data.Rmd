@@ -1,0 +1,292 @@
+---
+title: "Analysis on HSC dataset"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+
+Dataset to explore gene regulatory interactions for Hematopoietic Stem Cell Differentiation (HSC)
+```{r}
+
+HSC_2000_1 <- read.csv("data/HSC/HSC-2000-1/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+col_HSC <- HSC_2000_1[, 1]
+HSC_2000_1_50 <- read.csv("data/HSC/HSC-2000-1-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_1_70 <- read.csv("data/HSC/HSC-2000-1-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+HSC_2000_2 <- read.csv("data/HSC/HSC-2000-2/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_2_50 <- read.csv("data/HSC/HSC-2000-2-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_2_70 <- read.csv("data/HSC/HSC-2000-2-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+HSC_2000_3 <- read.csv("data/HSC/HSC-2000-3/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_3_50 <- read.csv("data/HSC/HSC-2000-3-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_3_70 <- read.csv("data/HSC/HSC-2000-3-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+HSC_2000_4 <- read.csv("data/HSC/HSC-2000-4/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_4_50 <- read.csv("data/HSC/HSC-2000-4-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_4_70 <- read.csv("data/HSC/HSC-2000-4-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+HSC_2000_5 <- read.csv("data/HSC/HSC-2000-5/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_5_50 <- read.csv("data/HSC/HSC-2000-5-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_5_70 <- read.csv("data/HSC/HSC-2000-5-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+
+HSC_2000_6 <- read.csv("data/HSC/HSC-2000-6/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_6_50 <- read.csv("data/HSC/HSC-2000-6-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_6_70 <- read.csv("data/HSC/HSC-2000-6-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+HSC_2000_7 <- read.csv("data/HSC/HSC-2000-7/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_7_50 <- read.csv("data/HSC/HSC-2000-7-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_7_70 <- read.csv("data/HSC/HSC-2000-7-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+HSC_2000_8 <- read.csv("data/HSC/HSC-2000-8/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_8_50 <- read.csv("data/HSC/HSC-2000-8-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_8_70 <- read.csv("data/HSC/HSC-2000-8-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+HSC_2000_9 <- read.csv("data/HSC/HSC-2000-9/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_9_50 <- read.csv("data/HSC/HSC-2000-9-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_9_70 <- read.csv("data/HSC/HSC-2000-9-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+HSC_2000_10 <- read.csv("data/HSC/HSC-2000-10/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_10_50 <- read.csv("data/HSC/HSC-2000-10-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+HSC_2000_10_70 <- read.csv("data/HSC/HSC-2000-10-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+
+HSC_2000_1  <- data.frame(t(HSC_2000_1[-1]))
+HSC_2000_1_50 <- data.frame(t(HSC_2000_1_50[-1]))
+HSC_2000_1_70 <- data.frame(t(HSC_2000_1_70[-1]))
+HSC_2000_2  <- data.frame(t(HSC_2000_2[-1]))
+HSC_2000_2_50 <- data.frame(t(HSC_2000_2_50[-1]))
+HSC_2000_2_70 <- data.frame(t(HSC_2000_2_70[-1]))
+HSC_2000_3  <- data.frame(t(HSC_2000_3[-1]))
+HSC_2000_3_50 <- data.frame(t(HSC_2000_3_50[-1]))
+HSC_2000_3_70 <- data.frame(t(HSC_2000_3_70[-1]))
+HSC_2000_4  <- data.frame(t(HSC_2000_4[-1]))
+HSC_2000_4_50 <- data.frame(t(HSC_2000_4_50[-1]))
+HSC_2000_4_70 <- data.frame(t(HSC_2000_4_70[-1]))
+HSC_2000_5  <- data.frame(t(HSC_2000_5[-1]))
+HSC_2000_5_50 <- data.frame(t(HSC_2000_5_50[-1]))
+HSC_2000_5_70 <- data.frame(t(HSC_2000_5_70[-1]))
+
+HSC_2000_6  <- data.frame(t(HSC_2000_6[-1]))
+HSC_2000_6_50 <- data.frame(t(HSC_2000_6_50[-1]))
+HSC_2000_6_70 <- data.frame(t(HSC_2000_6_70[-1]))
+HSC_2000_7  <- data.frame(t(HSC_2000_7[-1]))
+HSC_2000_7_50 <- data.frame(t(HSC_2000_7_50[-1]))
+HSC_2000_7_70 <- data.frame(t(HSC_2000_7_70[-1]))
+HSC_2000_8  <- data.frame(t(HSC_2000_8[-1]))
+HSC_2000_8_50 <- data.frame(t(HSC_2000_8_50[-1]))
+HSC_2000_8_70 <- data.frame(t(HSC_2000_8_70[-1]))
+HSC_2000_9  <- data.frame(t(HSC_2000_9[-1]))
+HSC_2000_9_50 <- data.frame(t(HSC_2000_9_50[-1]))
+HSC_2000_9_70 <- data.frame(t(HSC_2000_9_70[-1]))
+HSC_2000_10  <- data.frame(t(HSC_2000_10[-1]))
+HSC_2000_10_50 <- data.frame(t(HSC_2000_10_50[-1]))
+HSC_2000_10_70 <- data.frame(t(HSC_2000_10_70[-1]))
+
+
+HSC2 <- rbind(HSC_2000_1,HSC_2000_1_50,HSC_2000_1_70,HSC_2000_2,HSC_2000_2_50,HSC_2000_2_70,HSC_2000_3,HSC_2000_3_50,HSC_2000_3_70,HSC_2000_4,HSC_2000_4_50,HSC_2000_4_70,HSC_2000_5,HSC_2000_5_50,HSC_2000_5_70,HSC_2000_6,HSC_2000_6_50,HSC_2000_6_70,HSC_2000_7,HSC_2000_7_50,HSC_2000_7_70,HSC_2000_8,HSC_2000_8_50,HSC_2000_8_70,HSC_2000_9,HSC_2000_9_50,HSC_2000_9_70,HSC_2000_10,HSC_2000_10_50,HSC_2000_10_70)
+
+HSC2 <- rbind(HSC_2000_1,HSC_2000_2,HSC_2000_3,HSC_2000_4,HSC_2000_5,HSC_2000_6,HSC_2000_7,HSC_2000_8,HSC_2000_9,HSC_2000_10)
+HSC2 <- rbind(HSC_2000_5,HSC_2000_5_50,HSC_2000_5_70,HSC_2000_6,HSC_2000_6_50,HSC_2000_6_70)
+colnames(HSC2) = col_HSC
+
+HSC2= log(HSC2 +1)
+df_matrix1 <- as.matrix(HSC2)
+hist(df_matrix1)
+df_transf1 <- asinh(df_matrix1)
+hist(df_transf1)
+
+HSC_groundtruth <- read.csv("data/HSC/HSC-2000-1/refNetwork.csv", header = TRUE, stringsAsFactors=FALSE)
+
+HSC_groundtruth <- HSC_groundtruth[!(HSC_groundtruth$Gene1==HSC_groundtruth$Gene2),]
+dag_HSC_groundtruth = empty.graph(c('Gata1', 'Fli1', 'Cebpa' ,'Pu1', 'Gata2', 'cJun', 'Gfi1', 'EgrNab', 'Fog1', 'Eklf', 'Scl'),num=1)
+arcs(dag_HSC_groundtruth,check.cycles=FALSE)=HSC_groundtruth[,1:2]
+graphviz.plot(dag_HSC_groundtruth)
+
+outlier_hsc1=HSC2 
+outlier_hsc1=log(outlier_hsc1+1)
+HSC2=log(HSC2+1)
+newHSC = outlier_hsc1
+discrete_HSC2 <- bnlearn::discretize(outlier_hsc1, method = "hartemink", breaks = 3, ibreaks =33, idisc = "interval")
+#Renaming the labels
+for (i in names(discrete_HSC2))
+  levels(discrete_HSC2[, i]) = c("1", "2","3")
+
+nodes<-names(discrete_HSC2)
+start_HSC = start
+start<-random.graph(nodes=nodes,method="melancon",num=100,burn.in=10^1, every=10)
+netlist<-lapply(start_HSC,function(net){tabu(discrete_HSC2,score="mbde",iss=1,start=net,tabu=50)})
+intscore_HSC<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
+dag.mbde_HSC<-averaged.network(intscore_HSC,threshold = .8)
+#graphviz.plot(dag.mbde_HSC)
+#unlist(bnlearn::compare(skeleton(dag_HSC_groundtruth),skeleton(dag.mbde_HSC)))
+pred <- prediction(intscore_HSC[,3], labels_HSC[,3])
+perf_HSC <- performance(pred,"prec", "rec")
+auc_HSC <- performance(pred,"auc")
+
+
+knowledge_scores <- intscore_HSC[,1:3]
+knowledge_scores[,3]<- 0.2
+
+knowledge_scores$strength[c(8,6,10,23,25,33,35,45,46,53,54,55,56,58,66,68,70,65,61,78,90,81,86,87,90,107,101,108,109)] <- 0.5
+
+#knowledge_scores$strength[c(55,60,53,109,104,10,3)] <- 0.5
+#knowledge_scores$strength[c(52,54,55,60,53,109,104,10,3,31,101,15,35,45,106,40,90,25)] <- 0.5
+#knowledge_scores$strength[c(8,6,3,10,23,35,33,45,46,58,53,56,54,52,60,55,66,68,70,65,61,78,86,87,88,90,81,109,107,108,104,101,31,25,15,106,99,80,40)] <- 0.5
+beta <- data.frame(from=knowledge_scores[,1], to = knowledge_scores[,2], prob=knowledge_scores[,3],stringsAsFactors = FALSE)
+#start<-random.graph(nodes=nodes,method="melancon",num=100,burn.in=10^1, every=10)
+
+netlist<-lapply(start_HSC,function(net){tabu(discrete_HSC2,score="mbde",prior = "uniform",iss=1,start=net,tabu=50)})
+intscore_HSC_prior_marginal<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
+#dag.mbde_HSC_prior<-averaged.network(intscore_HSC_prior,threshold = .8)
+#graphviz.plot(dag.mbde_HSC_prior)
+#unlist(bnlearn::compare(skeleton(dag_HSC_groundtruth),skeleton(dag.mbde_HSC_prior)))
+
+pred <- prediction(intscore_HSC_prior[,3], labels_HSC[,3])
+perf_HSC_prior <- performance(pred,"prec", "rec")
+auc_HSC_prior <- performance(pred,"auc")
+
+
+
+netlist_hsc_marginal<-lapply(start_HSC,function(net){tabu(discrete_HSC2,score="mbde",prior = "marginal",iss=1,start=net,tabu=50)})
+
+netlist_hsc_vsp<-lapply(start_HSC,function(net){tabu(discrete_HSC2,score="mbde",prior = "vsp",iss=1,start=net,tabu=50)})
+
+
+
+intscore_hsc_prior_marginal<-custom.strength(netlist_hsc_marginal,nodes=nodes,cpdag=FALSE)
+
+intscore_hsc_prior_vsp<-custom.strength(netlist_hsc_vsp,nodes=nodes,cpdag=FALSE)
+```
+
+
+
+```{r}
+#..............finding the labels from the groundtruth networks...............
+labels_HSC <- intscore_HSC[,1:3]
+labels_HSC[,3] <- 0
+merge_HSC <- merge(intscore_HSC,HSC_groundtruth,by.x=c('from','to'),by.y=c('Gene1','Gene2'),all.x=TRUE)
+
+
+for (i in 1:nrow(merge_HSC)){
+  if (!is.na(merge_HSC[i,5])){
+    from = merge_HSC[i,1]
+    to = merge_HSC[i,2]
+  }
+  labels_HSC[which((labels_HSC$from %in% to) & (labels_HSC$to %in% from)),3] <- 1
+}
+
+
+```
+
+```{r}
+#.................ROC curve analysis for HSC Data...........................
+
+PRROC_obj1 <- roc.curve(scores.class0 = intscore_HSC[,3], weights.class0=labels_HSC[,3],curve=TRUE)
+PRROC_obj2 <- roc.curve(scores.class0 = intscore_HSC_prior[,3], weights.class0=labels_HSC[,3],curve=TRUE)
+PRROC_obj3 <- roc.curve(scores.class0 = intscore_hsc_prior_marginal[,3], weights.class0=labels_HSC[,3],curve=TRUE)
+PRROC_obj4 <- roc.curve(scores.class0 = intscore_hsc_prior_vsp[,3], weights.class0=labels_HSC[,3],curve=TRUE)
+```
+```{r}
+#.................ROC curve plot for HSC Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/HSCROC.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
+  geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('FP rate') + ylab('TP rate') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()
+       
+```
+```{r}
+#.................PR curve analysis for HSC Data...........................
+PRROC_obj1 <- pr.curve(scores.class0 = intscore_HSC[,3], weights.class0=labels_HSC[,3],curve=TRUE)
+PRROC_obj2 <- pr.curve(scores.class0 = intscore_HSC_prior[,3], weights.class0=labels_HSC[,3],curve=TRUE)
+PRROC_obj3 <- pr.curve(scores.class0 = intscore_hsc_prior_marginal[,3], weights.class0=labels_HSC[,3],curve=TRUE)
+PRROC_obj4 <- pr.curve(scores.class0 = intscore_hsc_prior_vsp[,3], weights.class0=labels_HSC[,3],curve=TRUE)
+```
+```{r}
+#.................PR curve plot for HSC Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/HSCPR.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
+  geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('Recall') + ylab('Precision') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()
+       
+```
+
+
+```{r}
+#.................F1 score vs cutoff analysis for HSC Data...........................
+pred <- prediction(intscore_HSC[,3], labels_HSC[,3])
+f_HSC <- performance(pred,"f")
+fscore_HSC = data.frame("Cutoff"=f_HSC@x.values[[1]],"Precision-Recall F measure"=f_HSC@y.values[[1]])
+
+
+pred <- prediction(intscore_HSC_prior[,3], labels_HSC[,3])
+f_HSC <- performance(pred,"f")
+fscore_HSC_prior = data.frame("Cutoff"=f_HSC@x.values[[1]],"Precision-Recall F measure"=f_HSC@y.values[[1]])
+
+pred <- prediction(intscore_hsc_prior_marginal[,3], labels_HSC[,3])
+f_HSC <- performance(pred,"f")
+fscore_HSC_marginal = data.frame("Cutoff"=f_HSC@x.values[[1]],"Precision-Recall F measure"=f_HSC@y.values[[1]])
+
+
+pred <- prediction(intscore_hsc_prior_vsp[,3], labels_HSC[,3])
+f_HSC <- performance(pred,"f")
+fscore_HSC_vsp = data.frame("Cutoff"=f_HSC@x.values[[1]],"Precision-Recall F measure"=f_HSC@y.values[[1]])
+```
+```{r}
+#.................F1 score vs cutoff plot for HSC Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/HSCF1.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = fscore_HSC, aes(x=Cutoff,y=Precision.Recall.F.measure,color="red")) + geom_line(data = fscore_HSC_prior, aes(x=Cutoff,y=Precision.Recall.F.measure,color = "blue")) + 
+  geom_line(data = data.frame(fscore_HSC_marginal), aes(x=Cutoff,y=Precision.Recall.F.measure,color="green"))+
+  geom_line(data = data.frame(fscore_HSC_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('F1 measure') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown")) +
+    theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()  
+```
+```{r}
+#.................accuracy vs cutoff analysis for Sachs Data...........................
+pred <- prediction(intscore_HSC[,3], labels_HSC[,3])
+f_HSC <- performance(pred,"acc")
+fscore_HSC = data.frame("Cutoff"=f_HSC@x.values[[1]],"Precision-Recall F measure"=f_HSC@y.values[[1]])
+
+
+pred <- prediction(intscore_HSC_prior[,3], labels_HSC[,3])
+f_HSC <- performance(pred,"acc")
+fscore_HSC_prior = data.frame("Cutoff"=f_HSC@x.values[[1]],"Precision-Recall F measure"=f_HSC@y.values[[1]])
+
+pred <- prediction(intscore_hsc_prior_marginal[,3], labels_HSC[,3])
+f_HSC <- performance(pred,"acc")
+fscore_HSC_marginal = data.frame("Cutoff"=f_HSC@x.values[[1]],"Precision-Recall F measure"=f_HSC@y.values[[1]])
+
+
+pred <- prediction(intscore_hsc_prior_vsp[,3], labels_HSC[,3])
+f_HSC <- performance(pred,"acc")
+fscore_HSC_vsp = data.frame("Cutoff"=f_HSC@x.values[[1]],"Precision-Recall F measure"=f_HSC@y.values[[1]])
+
+```
+```{r}
+#.................accuracy score vs cutoff plot for HSC Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/HSCAcc.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = fscore_HSC, aes(x=Cutoff,y=Precision.Recall.F.measure,color="red")) + geom_line(data = fscore_HSC_prior, aes(x=Cutoff,y=Precision.Recall.F.measure,color = "blue")) + 
+  geom_line(data = data.frame(fscore_HSC_marginal), aes(x=Cutoff,y=Precision.Recall.F.measure,color="green"))+
+  geom_line(data = data.frame(fscore_HSC_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('Accuracy') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+
+    theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1),legend.position="bottom") 
+plot(p)
+dev.off() 
+```
+```{r}
+dag.mbde<-averaged.network(intscore_HSC_prior, threshold = .85)
+graphviz.plot(dag_HSC_groundtruth)
+graphviz.plot(dag.mbde)
+compare(dag_HSC_groundtruth,dag.mbde)
+```
+

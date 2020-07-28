@@ -1,0 +1,196 @@
+---
+title: "Analysis on Yeast dataset"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r}
+
+yeast_groundtruth <- read.csv("data/Yeast/refNetwork.csv", header = TRUE, stringsAsFactors=FALSE)
+
+yeast_groundtruth <- yeast_groundtruth[!(yeast_groundtruth$Gene1==yeast_groundtruth$Gene2),]
+
+dag.yeast_groundtruth = empty.graph(c('ACE2','ASH1','ALG7','CDC20','CDC5','CDC6','CDC21'
+,'CLB2','CLB5','CLN1','CLN2','CTS1','EGT2','FAR1','FKH1','HTA1','MBP1','MCM1','NDD1','PCL2','SIC1','STB1','SWI4','SWI5','SWI6','CDC28','CLB6','CLN3','FUS3','FKH2'),num=1)
+arcs(dag.yeast_groundtruth,check.cycles=FALSE)=yeast_groundtruth[,1:2]
+graphviz.plot(dag.yeast_groundtruth)
+
+
+yeast <- read.csv("data/Yeast/yeast.csv", header = FALSE, stringsAsFactors=FALSE)
+col_yeast <- yeast[,1 ]
+
+yeast  <- data.frame(t(yeast[-1]))
+
+colnames(yeast) <- col_yeast
+discrete_yeast <- bnlearn::discretize(yeast, method = "hartemink", breaks = 2, ibreaks =33, idisc = "interval")
+#Renaming the labels
+for (i in names(discrete_yeast))
+  levels(discrete_yeast[, i]) = c("1", "2")
+
+
+nodes<-names(discrete_yeast)
+
+start<-random.graph(nodes=nodes,method="melancon",num=20,burn.in=10^1, every=2)
+
+netlist<-lapply(start,function(net){tabu(discrete_yeast,score="mbde",iss=1,start=net,tabu=50)})
+intscore_yeast<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
+dag_yeast<-averaged.network(intscore_yeast)
+unlist(compare(skeleton(dag.yeast_groundtruth),skeleton(dag_yeast)))
+
+graphviz.plot(dag_yeast)
+
+
+
+knowledge_scores <- intscore_yeast[,1:3]
+knowledge_scores[,3]<- 0.1
+knowledge_scores$strength[c(511,157,150,179,149,178,207,393,121,209,92,499,94,152,162,540,478,122,93,315,228,733,223,588,221,530,207,94,209,152,230,791,204,7,232,849,208,123,217,414,212,269,213,298,226,675,214,327,227,704,219,472,220,501,225,646,23,668,4,117,12,349,14,407,20,581,11,320,10,291,29,842,22,639,25,726,24,697,17,494,27,784,19,552,1,30,18,523,16,465,3,88,41,52,40,54,48,43,49,350,669,321,727,553,408,582,112,729,107,91,110,101,116,584,236,671,410,845,178,141,139,142,136,144,124,145,124,145,126,138,130,128,134,133,730,672,759,585,817,237,411,295,643,411,353,527,498,165,155,168,151,162,164,157,154,172,156,586,296,673,180,499,557,354,267,789,325,199,198,196,184,183,190,178,180,200,732,703,645,297,268,471,239,761,238,257,252,245,259,241,242,253,248,261,254,256,560,821,415,444,763,734,589,386,792,270,299,618,473,850,647,705,560,821,415,247,271,286,288,274,281,287,282,283,285,277,280,289,279,278,272,300,735,793,387,590,764,619,648,706,474,561,822,532,503,329)] <- 0.5
+
+beta <- data.frame(from=knowledge_scores[,1], to = knowledge_scores[,2], prob=knowledge_scores[,3],stringsAsFactors = FALSE)
+
+netlist<-lapply(start,function(net){tabu(discrete_yeast,score="mbde",prior = "cs", beta=beta,iss=1,start=net,tabu=50)})
+intscore_yeast_prior<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
+dag_yeast_prior<-averaged.network(intscore_yeast_prior)
+unlist(compare(skeleton(dag.yeast_groundtruth),skeleton(dag_yeast_prior)))
+
+netlist<-lapply(start,function(net){tabu(discrete_yeast,score="mbde", prior = "marginal",iss=1,start=net,tabu=50)})
+intscore_yeast_prior_marginal<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
+
+
+netlist<-lapply(start,function(net){tabu(discrete_yeast,score="mbde", prior = "vsp",iss=1,start=net,tabu=50)})
+intscore_yeast_prior_vsp<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
+
+```
+```{r}
+#..............finding the labels from the groundtruth networks...............
+labels_yeast <- intscore_yeast[,1:3]
+labels_yeast[,3] <- 0
+merge_yeast <- merge(intscore_yeast,yeast_groundtruth,by.x=c('from','to'),by.y=c('Gene2','Gene1'),all.x=TRUE)
+
+
+for (i in 1:nrow(merge_yeast)){
+  if (!is.na(merge_yeast[i,5])){
+    from = merge_yeast[i,1]
+    to = merge_yeast[i,2]
+  }
+  labels_yeast[which((labels_yeast$from %in% to) & (labels_yeast$to %in% from)),3] <- 1
+}
+
+```
+
+```{r}
+#.................ROC curve analysis for Yeast Data...........................
+PRROC_obj1 <- roc.curve(scores.class0 = intscore_yeast[,3], weights.class0=labels_yeast[,3],curve=TRUE)
+PRROC_obj2 <- roc.curve(scores.class0 = intscore_yeast_prior[,3], weights.class0=labels_yeast[,3],curve=TRUE)
+PRROC_obj3 <- roc.curve(scores.class0 = intscore_yeast_prior_marginal[,3], weights.class0=labels_yeast[,3],curve=TRUE)
+PRROC_obj4 <- roc.curve(scores.class0 = intscore_yeast_prior_vsp[,3], weights.class0=labels_yeast[,3],curve=TRUE)
+```
+
+```{r}
+#.................ROC Plot for Yeast Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/yeastROC.tiff", units="in", width=5, height=5, res=600)
+
+#p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) +   xlab('FP rate') + ylab('TP rate') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red"),labels = c("with Prior", "without Prior"),guide = "legend")+theme(text = element_text(size=20),axis.text.x = element_text(hjust=1)) 
+
+p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
+  geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('FP rate') + ylab('TP rate') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown")) +
+    theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+       
+plot(p)
+dev.off() 
+```
+
+
+```{r}
+#.................PR curve analysis for Yeast Data...........................
+PRROC_obj1 <- pr.curve(scores.class0 = intscore_yeast[,3], weights.class0=labels_yeast[,3],curve=TRUE)
+PRROC_obj2 <- pr.curve(scores.class0 = intscore_yeast_prior[,3], weights.class0=labels_yeast[,3],curve=TRUE)
+PRROC_obj3 <- pr.curve(scores.class0 = intscore_yeast_prior_marginal[,3], weights.class0=labels_yeast[,3],curve=TRUE)
+PRROC_obj4 <- pr.curve(scores.class0 = intscore_yeast_prior_vsp[,3], weights.class0=labels_yeast[,3],curve=TRUE)
+```
+
+```{r}
+#.................PR Plot for Yeast Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/yeastPR.tiff", units="in", width=5, height=5, res=600)
+
+p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
+  geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('Recall') + ylab('Precision') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown")) +
+    theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+       
+plot(p)
+dev.off() 
+```
+
+```{r}
+pred <- prediction(intscore_yeast[,3], labels_yeast[,3])
+f_yeast <- performance(pred,"f")
+fscore_yeast = data.frame("Cutoff"=f_yeast@x.values[[1]],"Precision-Recall F measure"=f_yeast@y.values[[1]])
+
+pred <- prediction(intscore_yeast_prior[,3], labels_yeast[,3])
+f_yeast <- performance(pred,"f")
+fscore_yeast_prior = data.frame("Cutoff"=f_yeast@x.values[[1]],"Precision-Recall F measure"=f_yeast@y.values[[1]])
+
+pred <- prediction(intscore_yeast_prior_marginal[,3], labels_yeast[,3])
+f_yeast <- performance(pred,"f")
+fscore_yeast_marginal = data.frame("Cutoff"=f_yeast@x.values[[1]],"Precision-Recall F measure"=f_yeast@y.values[[1]])
+
+pred <- prediction(intscore_yeast_prior_vsp[,3], labels_yeast[,3])
+f_yeast <- performance(pred,"f")
+fscore_yeast_vsp = data.frame("Cutoff"=f_yeast@x.values[[1]],"Precision-Recall F measure"=f_yeast@y.values[[1]])
+```
+
+
+```{r}
+tiff("/Users/megha/Documents/Kg2Causal/yeastF1.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = fscore_yeast, aes(x=Cutoff,y=Precision.Recall.F.measure,color="red")) + geom_line(data = fscore_yeast_prior, aes(x=Cutoff,y=Precision.Recall.F.measure,color = "blue")) + 
+  geom_line(data = data.frame(fscore_yeast_marginal), aes(x=Cutoff,y=Precision.Recall.F.measure,color="green"))+
+  geom_line(data = data.frame(fscore_yeast_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('F1 measure') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"),) +
+    theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off() 
+```
+
+```{r}
+
+pred <- prediction(intscore_yeast[,3], labels_yeast[,3])
+f_yeast <- performance(pred,"acc")
+fscore_yeast = data.frame("Cutoff"=f_yeast@x.values[[1]],"Precision-Recall F measure"=f_yeast@y.values[[1]])
+
+
+pred <- prediction(intscore_yeast_prior[,3], labels_yeast[,3])
+f_yeast <- performance(pred,"acc")
+fscore_yeast_prior = data.frame("Cutoff"=f_yeast@x.values[[1]],"Precision-Recall F measure"=f_yeast@y.values[[1]])
+
+pred <- prediction(intscore_yeast_prior_marginal[,3], labels_yeast[,3])
+f_yeast <- performance(pred,"acc")
+fscore_yeast_marginal = data.frame("Cutoff"=f_yeast@x.values[[1]],"Precision-Recall F measure"=f_yeast@y.values[[1]])
+
+
+pred <- prediction(intscore_yeast_prior_vsp[,3], labels_yeast[,3])
+f_yeast <- performance(pred,"acc")
+fscore_yeast_vsp = data.frame("Cutoff"=f_yeast@x.values[[1]],"Precision-Recall F measure"=f_yeast@y.values[[1]])
+```
+
+```{r}
+tiff("plots/yeastAcc.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = fscore_yeast, aes(x=Cutoff,y=Precision.Recall.F.measure,color="red")) + geom_line(data = fscore_yeast_prior, aes(x=Cutoff,y=Precision.Recall.F.measure,color = "blue")) + 
+  geom_line(data = data.frame(fscore_yeast_marginal), aes(x=Cutoff,y=Precision.Recall.F.measure,color="green"))+
+  geom_line(data = data.frame(fscore_yeast_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('Accuracy') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown")) +
+    theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off() 
+```
+
+```{r}
+dag.mbde<-averaged.network(intscore_yeast_prior, threshold = .85)
+graphviz.plot(dag.yeast_groundtruth)
+graphviz.plot(dag.mbde)
+compare(dag.yeast_groundtruth,dag.mbde)
+```

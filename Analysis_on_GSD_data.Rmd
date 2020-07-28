@@ -1,0 +1,309 @@
+---
+title: "Analysis on GSD dataset"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+#install.packages("knitr")
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Dataset to explore gene regulatory interactions for Gonadal Sex Determination (GSD) 
+```{r}
+GSD_new <- read.csv("data/GSD/GSDnew.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_1 <- read.csv("data/GSD/GSD-2000-1/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+col_GSD <- GSD_2000_1[, 1]
+GSD_2000_1_50 <- read.csv("data/GSD/GSD-2000-1-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_1_70 <- read.csv("data/GSD/GSD-2000-1-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+GSD_2000_2 <- read.csv("data/GSD/GSD-2000-2/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_2_50 <- read.csv("data/GSD/GSD-2000-2-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_2_70 <- read.csv("data/GSD/GSD-2000-2-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+GSD_2000_3 <- read.csv("data/GSD/GSD-2000-3/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_3_50 <- read.csv("data/GSD/GSD-2000-3-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_3_70 <- read.csv("data/GSD/GSD-2000-3-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+GSD_2000_4 <- read.csv("data/GSD/GSD-2000-4/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_4_50 <- read.csv("data/GSD/GSD-2000-4-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_4_70 <- read.csv("data/GSD/GSD-2000-4-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+GSD_2000_5 <- read.csv("data/GSD/GSD-2000-5/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_5_50 <- read.csv("data/GSD/GSD-2000-5-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_5_70 <- read.csv("data/GSD/GSD-2000-5-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+
+GSD_2000_6 <- read.csv("data/GSD/GSD-2000-6/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_6_50 <- read.csv("data/GSD/GSD-2000-6-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_6_70 <- read.csv("data/GSD/GSD-2000-6-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+GSD_2000_7 <- read.csv("data/GSD/GSD-2000-7/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_7_50 <- read.csv("data/GSD/GSD-2000-7-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_7_70 <- read.csv("data/GSD/GSD-2000-7-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+GSD_2000_8 <- read.csv("data/GSD/GSD-2000-8/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_8_50 <- read.csv("data/GSD/GSD-2000-8-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_8_70 <- read.csv("data/GSD/GSD-2000-8-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+GSD_2000_9 <- read.csv("data/GSD/GSD-2000-9/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_9_50 <- read.csv("data/GSD/GSD-2000-9-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_9_70 <- read.csv("data/GSD/GSD-2000-9-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+GSD_2000_10 <- read.csv("data/GSD/GSD-2000-10/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_10_50 <- read.csv("data/GSD/GSD-2000-10-50/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+GSD_2000_10_70 <- read.csv("data/GSD/GSD-2000-10-70/ExpressionData.csv", header = TRUE, stringsAsFactors=FALSE)
+
+
+GSD_new  <- data.frame(t(GSD_new[-1]))
+
+
+GSD_2000_1  <- data.frame(t(GSD_2000_1[-1]))
+GSD_2000_1_50 <- data.frame(t(GSD_2000_1_50[-1]))
+GSD_2000_1_70 <- data.frame(t(GSD_2000_1_70[-1]))
+GSD_2000_2  <- data.frame(t(GSD_2000_2[-1]))
+GSD_2000_2_50 <- data.frame(t(GSD_2000_2_50[-1]))
+GSD_2000_2_70 <- data.frame(t(GSD_2000_2_70[-1]))
+GSD_2000_3  <- data.frame(t(GSD_2000_3[-1]))
+GSD_2000_3_50 <- data.frame(t(GSD_2000_3_50[-1]))
+GSD_2000_3_70 <- data.frame(t(GSD_2000_3_70[-1]))
+GSD_2000_4  <- data.frame(t(GSD_2000_4[-1]))
+GSD_2000_4_50 <- data.frame(t(GSD_2000_4_50[-1]))
+GSD_2000_4_70 <- data.frame(t(GSD_2000_4_70[-1]))
+GSD_2000_5  <- data.frame(t(GSD_2000_5[-1]))
+GSD_2000_5_50 <- data.frame(t(GSD_2000_5_50[-1]))
+GSD_2000_5_70 <- data.frame(t(GSD_2000_5_70[-1]))
+GSD_2000_6  <- data.frame(t(GSD_2000_6[-1]))
+GSD_2000_6_50 <- data.frame(t(GSD_2000_6_50[-1]))
+GSD_2000_6_70 <- data.frame(t(GSD_2000_6_70[-1]))
+GSD_2000_7  <- data.frame(t(GSD_2000_7[-1]))
+GSD_2000_7_50 <- data.frame(t(GSD_2000_7_50[-1]))
+GSD_2000_7_70 <- data.frame(t(GSD_2000_7_70[-1]))
+GSD_2000_8  <- data.frame(t(GSD_2000_8[-1]))
+GSD_2000_8_50 <- data.frame(t(GSD_2000_8_50[-1]))
+GSD_2000_8_70 <- data.frame(t(GSD_2000_8_70[-1]))
+GSD_2000_9  <- data.frame(t(GSD_2000_9[-1]))
+GSD_2000_9_50 <- data.frame(t(GSD_2000_9_50[-1]))
+GSD_2000_9_70 <- data.frame(t(GSD_2000_9_70[-1]))
+GSD_2000_10  <- data.frame(t(GSD_2000_10[-1]))
+GSD_2000_10_50 <- data.frame(t(GSD_2000_10_50[-1]))
+GSD_2000_10_70 <- data.frame(t(GSD_2000_10_70[-1]))
+
+
+GSD2 <- rbind(GSD_2000_1,GSD_2000_1_50,GSD_2000_1_70,GSD_2000_2,GSD_2000_2_50,GSD_2000_2_70,GSD_2000_3,GSD_2000_3_50,GSD_2000_3_70,GSD_2000_4,GSD_2000_4_50,GSD_2000_4_70,GSD_2000_5,GSD_2000_5_50,GSD_2000_5_70,GSD_2000_6,GSD_2000_6_50,GSD_2000_6_70,GSD_2000_7,GSD_2000_7_50,GSD_2000_7_70,GSD_2000_8,GSD_2000_8_50,GSD_2000_8_70,GSD_2000_9,GSD_2000_9_50,GSD_2000_9_70,GSD_2000_10,GSD_2000_10_50,GSD_2000_10_70)
+
+#GSD2 <- rbind(GSD_2000_1,GSD_2000_1_50,GSD_2000_1_70)
+GSD2 = log(GSD2 + 1)
+#GSD2 <- rbind(GSD_2000_1,GSD_2000_2,GSD_2000_3,GSD_2000_4,GSD_2000_5,GSD_2000_6,GSD_2000_7,GSD_2000_8,GSD_2000_9,GSD_2000_10)
+#GSD_new <- log(GSD_new +1)
+#colnames(GSD_new) = col_GSD
+colnames(GSD2) = col_GSD
+GSD_groundtruth <- read.csv("BEELINE-data/inputs/Curated/GSD/GSD-2000-1/refNetwork.csv", header = TRUE, stringsAsFactors=FALSE)
+
+GSD_groundtruth <- GSD_groundtruth[!(GSD_groundtruth$Gene1==GSD_groundtruth$Gene2),]
+
+dag.GSD_groundtruth = empty.graph(c('AMH','CBX2','CTNNB1','DHH','DKK1','DMRT1','FGF9','FOXL2','GATA4','NR0B1','NR5A1','PGD2','RSPO1','SOX9','SRY','UGR','WNT4','WT1mKTS','WT1pKTS'),num=1)
+arcs(dag.GSD_groundtruth,check.cycles=FALSE)=GSD_groundtruth[,1:2]
+graphviz.plot(dag.GSD_groundtruth)
+unlist(compare(skeleton(dag.GSD_groundtruth),skeleton(dag.mbde_GSD)))
+
+discrete_GSD2 <- bnlearn::discretize(GSD2, method = "hartemink", breaks = 3, ibreaks =33, idisc = "interval")
+#Renaming the labels
+for (i in names(discrete_GSD2))
+  levels(discrete_GSD2[, i]) = c("1", "2", "3")
+#head(discrete_GSD2)
+```
+
+
+
+
+```{r}
+nodes<-names(discrete_GSD2)
+
+start<-random.graph(nodes=nodes,method="melancon",num=100,burn.in=10^1, every=50)
+
+netlist<-lapply(start,function(net){tabu(discrete_GSD2,score="mbde",iss=1,start=net,tabu=50)})
+intscore_GSD<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
+#dag.mbde_GSD<-averaged.network(intscore_GSD)
+#graphviz.plot(dag.mbde_GSD)
+
+knowledge_scores <- intscore_GSD[,1:3]
+knowledge_scores[,3]<- 0.2
+knowledge_scores$strength[c(189,193,183,190,241,237,259,255,40,46,111,291,75,245,154,172,121,49,122,50,42,52)] <- 0.5
+
+beta <- data.frame(from=knowledge_scores[,1], to = knowledge_scores[,2], prob=knowledge_scores[,3],stringsAsFactors = FALSE)
+
+netlist<-lapply(start,function(net){tabu(discrete_GSD2,score="mbde",prior = "cs", beta=beta,iss=1,start=net,tabu=50)})
+intscore_GSD_prior<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
+#dag.mbde_GSD_prior<-averaged.network(intscore_GSD_prior)
+#graphviz.plot(dag.mbde_GSD_prior)
+#unlist(bnlearn::compare(skeleton(dag.GSD_groundtruth),skeleton(dag.mbde_GSD_prior)))
+
+pred <- prediction(intscore_GSD_prior[,3], labels_GSD[,3])
+perf_GSD_prior <- performance(pred,"tpr","fpr")
+auc_GSD_prior <- performance(pred,"auc")
+
+
+netlist_GSD_marginal<-lapply(start,function(net){tabu(discrete_GSD2,score="mbde",prior = "marginal",iss=1,start=net,tabu=50)})
+
+netlist_GSD_vsp<-lapply(start,function(net){tabu(discrete_GSD2,score="mbde",prior = "vsp",iss=1,start=net,tabu=50)})
+
+
+intscore_GSD_prior_marginal<-custom.strength(netlist_GSD_marginal,nodes=nodes,cpdag=FALSE)
+
+intscore_GSD_prior_vsp<-custom.strength(netlist_GSD_vsp,nodes=nodes,cpdag=FALSE)
+```
+```{r}
+
+outlier_gsd1 = GSD2
+
+  
+outlierReplace(outlier_gsd1, "AMH", which(outlier_gsd1$AMH > 1.4), NA)
+outlier_gsd1 = na.omit(outlier_gsd1)
+
+```
+
+
+```{r}
+labels_GSD <- intscore_GSD[,1:3]
+labels_GSD[,3] <- 0
+merge_GSD <- merge(intscore_GSD,GSD_groundtruth,by.x=c('from','to'),by.y=c('Gene1','Gene2'),all.x=TRUE)
+
+
+for (i in 1:nrow(merge_GSD)){
+  if (!is.na(merge_GSD[i,5])){
+    from = merge_GSD[i,1]
+    to = merge_GSD[i,2]
+  }
+  labels_GSD[which((labels_GSD$from %in% to) & (labels_GSD$to %in% from)),3] <- 1
+}
+
+
+#for (i in 1:nrow(labels_HSC)){
+#  if (labels_HSC[i,3]==1){
+#    from = labels_HSC[i,1]
+#    to = labels_HSC[i,2]
+#    labels_HSC[which((labels_HSC$from %in% to) & (labels_HSC$to %in% from)),][3] <- 1
+#  }
+#}
+```
+```{r}
+#.................ROC curve analysis for GSD Data...........................
+PRROC_obj1 <- roc.curve(scores.class0 = intscore_GSD[,3], weights.class0=labels_GSD[,3],curve=TRUE)
+PRROC_obj2 <- roc.curve(scores.class0 = intscore_GSD_prior[,3], weights.class0=labels_GSD[,3],curve=TRUE)
+PRROC_obj3 <- roc.curve(scores.class0 = intscore_GSD_prior_marginal[,3], weights.class0=labels_GSD[,3],curve=TRUE)
+PRROC_obj4 <- roc.curve(scores.class0 = intscore_GSD_prior_vsp[,3], weights.class0=labels_GSD[,3],curve=TRUE)
+#plot(PRROC_obj1)
+
+```
+```{r}
+#.................ROC Plot for GSD Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/GSDROC.tiff", units="in", width=5, height=5, res=600)
+
+p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
+  geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('FP rate') + ylab('TP rate') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown")) +
+    theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off() 
+```       
+
+```{r}
+#.................PR curve analysis for GSD Data...........................
+PRROC_obj1 <- pr.curve(scores.class0 = intscore_GSD[,3], weights.class0=labels_GSD[,3],curve=TRUE)
+PRROC_obj2 <- pr.curve(scores.class0 = intscore_GSD_prior[,3], weights.class0=labels_GSD[,3],curve=TRUE)
+PRROC_obj3 <- pr.curve(scores.class0 = intscore_GSD_prior_marginal[,3], weights.class0=labels_GSD[,3],curve=TRUE)
+PRROC_obj4 <- pr.curve(scores.class0 = intscore_GSD_prior_vsp[,3], weights.class0=labels_GSD[,3],curve=TRUE)
+
+```
+
+```{r}
+#.................PR Plot for GSD Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/GSDPR.tiff", units="in", width=5, height=5, res=600)
+
+p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
+  geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('Recall') + ylab('Precision') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown")) +
+    theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off() 
+```
+
+```{r}
+#.................F1 score vs cutoff analysis for GSD Data...........................
+pred <- prediction(intscore_GSD[,3], labels_GSD[,3])
+f_GSD <- performance(pred,"f")
+fscore_GSD = data.frame("Cutoff"=f_GSD@x.values[[1]],"Precision-Recall F measure"=f_GSD@y.values[[1]])
+
+
+pred <- prediction(intscore_GSD_prior[,3], labels_GSD[,3])
+f_GSD <- performance(pred,"f")
+fscore_GSD_prior = data.frame("Cutoff"=f_GSD@x.values[[1]],"Precision-Recall F measure"=f_GSD@y.values[[1]])
+
+pred <- prediction(intscore_GSD_prior_marginal[,3], labels_GSD[,3])
+f_GSD <- performance(pred,"f")
+fscore_GSD_marginal = data.frame("Cutoff"=f_GSD@x.values[[1]],"Precision-Recall F measure"=f_GSD@y.values[[1]])
+
+
+pred <- prediction(intscore_GSD_prior_vsp[,3], labels_GSD[,3])
+f_GSD <- performance(pred,"f")
+fscore_GSD_vsp = data.frame("Cutoff"=f_GSD@x.values[[1]],"Precision-Recall F measure"=f_GSD@y.values[[1]])
+```
+
+```{r}
+#.................F1 score vs cutoff plot for GSD Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/GSDF1.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = fscore_GSD, aes(x=Cutoff,y=Precision.Recall.F.measure,color="red")) + geom_line(data = fscore_GSD_prior, aes(x=Cutoff,y=Precision.Recall.F.measure,color = "blue")) + 
+  geom_line(data = data.frame(fscore_GSD_marginal), aes(x=Cutoff,y=Precision.Recall.F.measure,color="green"))+
+  geom_line(data = data.frame(fscore_GSD_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('F1 measure') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown")) +
+    theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()  
+```
+
+```{r}
+#.................accuracy vs cutoff analysis for GSD Data...........................
+pred <- prediction(intscore_GSD[,3], labels_GSD[,3])
+f_GSD <- performance(pred,"acc")
+fscore_GSD = data.frame("Cutoff"=f_GSD@x.values[[1]],"Precision-Recall F measure"=f_GSD@y.values[[1]])
+
+
+pred <- prediction(intscore_GSD_prior[,3], labels_GSD[,3])
+f_GSD <- performance(pred,"acc")
+fscore_GSD_prior = data.frame("Cutoff"=f_GSD@x.values[[1]],"Precision-Recall F measure"=f_GSD@y.values[[1]])
+
+pred <- prediction(intscore_GSD_prior_marginal[,3], labels_GSD[,3])
+f_GSD <- performance(pred,"acc")
+fscore_GSD_marginal = data.frame("Cutoff"=f_GSD@x.values[[1]],"Precision-Recall F measure"=f_GSD@y.values[[1]])
+
+
+pred <- prediction(intscore_GSD_prior_vsp[,3], labels_GSD[,3])
+f_GSD <- performance(pred,"acc")
+fscore_GSD_vsp = data.frame("Cutoff"=f_GSD@x.values[[1]],"Precision-Recall F measure"=f_GSD@y.values[[1]])
+
+```
+
+```{r}
+#.................accuracy score vs cutoff plot for GSD Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/GSDAcc.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = fscore_GSD, aes(x=Cutoff,y=Precision.Recall.F.measure,color="red")) + geom_line(data = fscore_GSD_prior, aes(x=Cutoff,y=Precision.Recall.F.measure,color = "blue")) + 
+  geom_line(data = data.frame(fscore_GSD_marginal), aes(x=Cutoff,y=Precision.Recall.F.measure,color="green"))+
+  geom_line(data = data.frame(fscore_GSD_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('Accuracy') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+
+    theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1),legend.position="bottom") 
+plot(p)
+dev.off() 
+```
+```{r}
+dag.mbde<-averaged.network(intscore_GSD_prior, threshold = .85)
+graphviz.plot(dag.GSD_groundtruth)
+graphviz.plot(dag.mbde)
+compare(dag.GSD_groundtruth,dag.mbde)
+```
+
+
