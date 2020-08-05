@@ -1,0 +1,11 @@
+from,to,Type
+hepatorenal_syndrome,electrolyte_disorder,+
+hepatorenal_syndrome,HE,+
+hepatorenal_syndrome,infection,+
+electrolyte_disorder,HE,+
+HE,total_bilirubin,+
+HE,poor_spirit,+
+HE,infection,+
+HE,prothrombin_time,+
+diabete,total_bilirubin,+
+total_bilirubin,prothrombin_time,+

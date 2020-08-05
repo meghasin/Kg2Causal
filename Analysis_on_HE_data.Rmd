@@ -1,0 +1,224 @@
+---
+title: "Analysis on HE dataset"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+#install.packages("knitr")
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#install.packages("bnlearn")
+library(bnlearn)
+source("http://bioconductor.org/biocLite.R")
+biocLite("Rgraphviz")
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install()
+BiocManager::install(c("Rgraphviz"))
+library(Rgraphviz)
+library(ggplot2)
+install.packages("pcalg")
+source("http://bioconductor.org/biocLite.R") 
+BiocManager::install(c("RBGL"))
+library(RBGL)
+library(pcalg)
+library(ROCR)
+library(PRROC)
+```
+
+
+```{r}
+HE <- read.csv("data/Hepatic encephalopathy/HE_data.csv", header = TRUE, stringsAsFactors=TRUE)
+HE[] <- lapply(HE[], as.factor)
+#INT<-sapply(1:11,function(x){which(HE$INT==x)})
+nodes<-names(HE)
+#names(INT)<-nodes
+#dag.HE_groundtruth = model2network("[A][S][T|A][L|S][B|S][D|B:E][E|T:L][X|E]")
+
+start_HE<-random.graph(nodes=nodes,method="melancon",num=100,burn.in=10^1, every=50)
+netlist<-lapply(start_HE,function(net){tabu(HE,score="mbde",iss=1,start=net,tabu=50)})
+intscore_HE<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
+dag.mbde_HE<-averaged.network(intscore_HE)
+graphviz.plot(dag.mbde_HE)
+#compare((dag.HE_groundtruth),(dag.mbde_HE),  arcs = TRUE)
+
+
+knowledge_scores <- intscore_HE[,1:3]
+knowledge_scores[,3]<- 0.2
+
+knowledge_scores$strength[c(9,12,48,49)] <- 0.5
+
+beta <- data.frame(from=knowledge_scores[,1], to = knowledge_scores[,2], prob=knowledge_scores[,3],stringsAsFactors = FALSE)
+netlist_prior<-lapply(start_HE,function(net){tabu(HE,score="mbde", prior = "cs",beta=beta,iss=1,start=net,tabu=50)})
+
+netlist_prior_marginal<-lapply(start_HE,function(net){tabu(HE,score="mbde", prior = "marginal",iss=1,start=net,tabu=50)})
+
+netlist_prior_vsp<-lapply(start_HE,function(net){tabu(HE,score="mbde", prior = "vsp",iss=1,start=net,tabu=50)})
+
+
+
+intscore_HE_prior<-custom.strength(netlist_prior,nodes=nodes,cpdag=FALSE)
+
+intscore_HE_prior_marginal<-custom.strength(netlist_prior_marginal,nodes=nodes,cpdag=FALSE)
+
+intscore_HE_prior_vsp<-custom.strength(netlist_prior_vsp,nodes=nodes,cpdag=FALSE)
+```
+
+```{r}
+
+HE_groundtruth <- read.csv("data/Hepatic encephalopathy/refNetwork.csv", header = TRUE, stringsAsFactors=FALSE)
+
+HE_groundtruth <- HE_groundtruth[!(HE_groundtruth$from==HE_groundtruth$to),]
+dag_HE_groundtruth = empty.graph(c("poor_spirit", "total_bilirubin", "prothrombin_time", "infection", "electrolyte_disorder", "diabete", "hepatorenal_syndrome", "HE" ),num=1)
+arcs(dag_HE_groundtruth,check.cycles=FALSE)=HE_groundtruth[,1:2]
+graphviz.plot(dag_HE_groundtruth)
+
+
+
+
+#..............finding the labels from the groundtruth networks...............
+HE_groundtruth <- read.csv("data/Hepatic encephalopathy/refNetwork.csv", header = TRUE)
+labels_HE <- intscore_HE[,1:3]
+labels_HE[,3] <- 0
+merge_HE <- merge(intscore_HE,HE_groundtruth,by.x=c('from','to'),by.y=c('from','to'),all.x=TRUE)
+
+
+for (i in 1:nrow(merge_HE)){
+  if (!is.na(merge_HE[i,5])){
+    from = merge_HE[i,1]
+    to = merge_HE[i,2]
+  }
+  labels_HE[which((labels_HE$from %in% from) & (labels_HE$to %in% to)),3] <- 1
+}
+
+for (i in 1:nrow(labels_HE)){
+  if (labels_HE[i,3]==1){
+    from = labels_HE[i,1]
+    to = labels_HE[i,2]
+    labels_HE[which((labels_HE$from %in% to) & (labels_HE$to %in% from)),][3] <- 1
+  }
+}
+```
+```{r}
+#.................ROC curve analysis for HE Data...........................
+PRROC_obj1 <- roc.curve(scores.class0 = intscore_HE[,3], weights.class0=labels_HE[,3],curve=TRUE)
+PRROC_obj2 <- roc.curve(scores.class0 = intscore_HE_prior[,3], weights.class0=labels_HE[,3],curve=TRUE)
+PRROC_obj3 <- roc.curve(scores.class0 = intscore_HE_prior_marginal[,3], weights.class0=labels_HE[,3],curve=TRUE)
+PRROC_obj4 <- roc.curve(scores.class0 = intscore_HE_prior_vsp[,3], weights.class0=labels_HE[,3],curve=TRUE)
+```
+```{r}
+#.................ROC curve plot for HE Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/Plots/HEROC.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
+  geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('FP rate') + ylab('TP rate') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()
+       
+```
+```{r}
+#.................PR curve analysis for HE Data...........................
+PRROC_obj1 <- pr.curve(scores.class0 = intscore_HE[,3], weights.class0=labels_HE[,3],curve=TRUE)
+PRROC_obj2 <- pr.curve(scores.class0 = intscore_HE_prior[,3], weights.class0=labels_HE[,3],curve=TRUE)
+PRROC_obj3 <- pr.curve(scores.class0 = intscore_HE_prior_marginal[,3], weights.class0=labels_HE[,3],curve=TRUE)
+PRROC_obj4 <- pr.curve(scores.class0 = intscore_HE_prior_vsp[,3], weights.class0=labels_HE[,3],curve=TRUE)
+```
+```{r}
+#.................PR curve plot for HE Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/HEPR.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
+  geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('Recall') + ylab('Precision') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()
+       
+```
+```{r}
+#.................F1 score vs cutoff analysis for HE Data...........................
+pred <- prediction(intscore_HE[,3], labels_HE[,3])
+f_HE <- performance(pred,"f")
+fscore_HE = data.frame("Cutoff"=f_HE@x.values[[1]],"Precision-Recall F measure"=f_HE@y.values[[1]])
+
+pred <- prediction(intscore_HE_prior[,3], labels_HE[,3])
+f_HE <- performance(pred,"f")
+fscore_HE_prior = data.frame("Cutoff"=f_HE@x.values[[1]],"Precision-Recall F measure"=f_HE@y.values[[1]])
+
+pred <- prediction(intscore_HE_prior_marginal[,3], labels_HE[,3])
+f_HE <- performance(pred,"f")
+fscore_HE_marginal = data.frame("Cutoff"=f_HE@x.values[[1]],"Precision-Recall F measure"=f_HE@y.values[[1]])
+
+pred <- prediction(intscore_HE_prior_vsp[,3], labels_HE[,3])
+f_HE <- performance(pred,"f")
+fscore_HE_vsp = data.frame("Cutoff"=f_HE@x.values[[1]],"Precision-Recall F measure"=f_HE@y.values[[1]])
+```
+```{r}
+#.................F1 score vs cutoff plotting for HE Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/HEF1.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = fscore_HE, aes(x=Cutoff,y=Precision.Recall.F.measure,color="red")) + geom_line(data = fscore_HE_prior, aes(x=Cutoff,y=Precision.Recall.F.measure,color = "blue")) + 
+  geom_line(data = data.frame(fscore_HE_marginal), aes(x=Cutoff,y=Precision.Recall.F.measure,color="green"))+
+  geom_line(data = data.frame(fscore_HE_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('F1 measure') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()
+```
+
+
+```{r}
+#.................accuracy vs cutoff analysis for HE Data.....................
+pred <- prediction(intscore_HE[,3], labels_HE[,3])
+f_HE <- performance(pred,"acc")
+fscore_HE = data.frame("Cutoff"=f_HE@x.values[[1]],"Precision-Recall F measure"=f_HE@y.values[[1]])
+
+
+pred <- prediction(intscore_HE_prior[,3], labels_HE[,3])
+f_HE <- performance(pred,"acc")
+fscore_HE_prior = data.frame("Cutoff"=f_HE@x.values[[1]],"Precision-Recall F measure"=f_HE@y.values[[1]])
+
+pred <- prediction(intscore_HE_prior_marginal[,3], labels_HE[,3])
+f_HE <- performance(pred,"acc")
+fscore_HE_marginal = data.frame("Cutoff"=f_HE@x.values[[1]],"Precision-Recall F measure"=f_HE@y.values[[1]])
+
+
+pred <- prediction(intscore_HE_prior_vsp[,3], labels_HE[,3])
+f_HE <- performance(pred,"acc")
+fscore_HE_vsp = data.frame("Cutoff"=f_HE@x.values[[1]],"Precision-Recall F measure"=f_HE@y.values[[1]])
+```
+
+```{r}
+#.................accuracy vs cutoff plotting for HE Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/HEAcc.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = fscore_HE, aes(x=Cutoff,y=Precision.Recall.F.measure,color="red")) + geom_line(data = fscore_HE_prior, aes(x=Cutoff,y=Precision.Recall.F.measure,color = "blue")) + 
+  geom_line(data = data.frame(fscore_HE_marginal), aes(x=Cutoff,y=Precision.Recall.F.measure,color="green"))+
+  geom_line(data = data.frame(fscore_HE_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('Accuracy') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()       
+```
+
+
+```{r}
+dag.mbde<-averaged.network(intscore_HE_prior, threshold = .85)
+
+a = compare(skeleton(dag_HE_groundtruth),skeleton(dag.mbde),  arcs = TRUE)
+HE_causal_skeleton = empty.graph(c("poor_spirit","total_bilirubin" ,"prothrombin_time","infection"          ,"electrolyte_disorder","diabete","hepatorenal_syndrome", "HE"),num=1)
+arcs(HE_causal_skeleton,check.cycles=FALSE)=a$tp 
+
+a= compare((dag_HE_groundtruth),(dag.mbde),  arcs = TRUE)
+HE_causal = empty.graph(c("poor_spirit","total_bilirubin" ,"prothrombin_time","infection"          ,"electrolyte_disorder","diabete","hepatorenal_syndrome", "HE"),num=1)
+arcs(HE_causal,check.cycles=FALSE)=a$tp
+
+graphviz.compare(HE_causal_skeleton, HE_causal)
+```
+
+
+
+
+

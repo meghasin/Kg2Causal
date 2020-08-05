@@ -1,0 +1,211 @@
+---
+title: "Analysis on Asia dataset"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+#install.packages("knitr")
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#install.packages("bnlearn")
+library(bnlearn)
+source("http://bioconductor.org/biocLite.R")
+biocLite("Rgraphviz")
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install()
+BiocManager::install(c("Rgraphviz"))
+library(Rgraphviz)
+library(ggplot2)
+install.packages("pcalg")
+source("http://bioconductor.org/biocLite.R") 
+BiocManager::install(c("RBGL"))
+library(RBGL)
+library(pcalg)
+library(ROCR)
+library(PRROC)
+```
+
+
+```{r}
+#INT<-sapply(1:11,function(x){which(asia$INT==x)})
+nodes<-names(asia)
+#names(INT)<-nodes
+dag.asia_groundtruth = model2network("[A][S][T|A][L|S][B|S][D|B:E][E|T:L][X|E]")
+
+start_asia<-random.graph(nodes=nodes,method="melancon",num=100,burn.in=10^1, every=50)
+netlist<-lapply(start_asia,function(net){tabu(asia,score="mbde",iss=1,start=net,tabu=50)})
+intscore_asia<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
+dag.mbde_asia<-averaged.network(intscore_asia)
+graphviz.plot(dag.mbde_asia)
+compare((dag.asia_groundtruth),(dag.mbde_asia),  arcs = TRUE)
+
+
+knowledge_scores <- intscore_asia[,1:3]
+knowledge_scores[,3]<- 0.2
+
+knowledge_scores$strength[c(35,26,42,11,19,42)] <- 0.5
+
+beta <- data.frame(from=knowledge_scores[,1], to = knowledge_scores[,2], prob=knowledge_scores[,3],stringsAsFactors = FALSE)
+netlist_prior<-lapply(start_asia,function(net){tabu(asia,score="mbde", prior = "cs",beta=beta,iss=1,start=net,tabu=50)})
+
+netlist_prior_marginal<-lapply(start_asia,function(net){tabu(asia,score="mbde", prior = "marginal",iss=1,start=net,tabu=50)})
+
+netlist_prior_vsp<-lapply(start_asia,function(net){tabu(asia,score="mbde", prior = "vsp",iss=1,start=net,tabu=50)})
+
+
+
+intscore_asia_prior<-custom.strength(netlist_prior,nodes=nodes,cpdag=FALSE)
+
+intscore_asia_prior_marginal<-custom.strength(netlist_prior_marginal,nodes=nodes,cpdag=FALSE)
+
+intscore_asia_prior_vsp<-custom.strength(netlist_prior_vsp,nodes=nodes,cpdag=FALSE)
+```
+
+```{r}
+#..............finding the labels from the groundtruth networks...............
+asia_groundtruth <- read.csv("data/Asia/refNetwork.csv", header = TRUE)
+labels_asia <- intscore_asia[,1:3]
+labels_asia[,3] <- 0
+merge_asia <- merge(intscore_asia,asia_groundtruth,by.x=c('from','to'),by.y=c('from','to'),all.x=TRUE)
+
+
+for (i in 1:nrow(merge_asia)){
+  if (!is.na(merge_asia[i,5])){
+    from = merge_asia[i,1]
+    to = merge_asia[i,2]
+  }
+  labels_asia[which((labels_asia$from %in% from) & (labels_asia$to %in% to)),3] <- 1
+}
+
+for (i in 1:nrow(labels_asia)){
+  if (labels_asia[i,3]==1){
+    from = labels_asia[i,1]
+    to = labels_asia[i,2]
+    labels_asia[which((labels_asia$from %in% to) & (labels_asia$to %in% from)),][3] <- 1
+  }
+}
+```
+```{r}
+#.................ROC curve analysis for asia Data...........................
+PRROC_obj1 <- roc.curve(scores.class0 = intscore_asia[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj2 <- roc.curve(scores.class0 = intscore_asia_prior[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj3 <- roc.curve(scores.class0 = intscore_asia_prior_marginal[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj4 <- roc.curve(scores.class0 = intscore_asia_prior_vsp[,3], weights.class0=labels_asia[,3],curve=TRUE)
+```
+```{r}
+#.................ROC curve plot for asia Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/Plots/asiaROC.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
+  geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('FP rate') + ylab('TP rate') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()
+       
+```
+```{r}
+#.................PR curve analysis for asia Data...........................
+PRROC_obj1 <- pr.curve(scores.class0 = intscore_asia[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj2 <- pr.curve(scores.class0 = intscore_asia_prior[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj3 <- pr.curve(scores.class0 = intscore_asia_prior_marginal[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj4 <- pr.curve(scores.class0 = intscore_asia_prior_vsp[,3], weights.class0=labels_asia[,3],curve=TRUE)
+```
+```{r}
+#.................PR curve plot for asia Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/asiaPR.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
+  geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('Recall') + ylab('Precision') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()
+       
+```
+```{r}
+#.................F1 score vs cutoff analysis for asia Data...........................
+pred <- prediction(intscore_asia[,3], labels_asia[,3])
+f_asia <- performance(pred,"f")
+fscore_asia = data.frame("Cutoff"=f_asia@x.values[[1]],"Precision-Recall F measure"=f_asia@y.values[[1]])
+
+pred <- prediction(intscore_asia_prior[,3], labels_asia[,3])
+f_asia <- performance(pred,"f")
+fscore_asia_prior = data.frame("Cutoff"=f_asia@x.values[[1]],"Precision-Recall F measure"=f_asia@y.values[[1]])
+
+pred <- prediction(intscore_asia_prior_marginal[,3], labels_asia[,3])
+f_asia <- performance(pred,"f")
+fscore_asia_marginal = data.frame("Cutoff"=f_asia@x.values[[1]],"Precision-Recall F measure"=f_asia@y.values[[1]])
+
+pred <- prediction(intscore_asia_prior_vsp[,3], labels_asia[,3])
+f_asia <- performance(pred,"f")
+fscore_asia_vsp = data.frame("Cutoff"=f_asia@x.values[[1]],"Precision-Recall F measure"=f_asia@y.values[[1]])
+```
+```{r}
+#.................F1 score vs cutoff plotting for asia Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/asiaF1.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = fscore_asia, aes(x=Cutoff,y=Precision.Recall.F.measure,color="red")) + geom_line(data = fscore_asia_prior, aes(x=Cutoff,y=Precision.Recall.F.measure,color = "blue")) + 
+  geom_line(data = data.frame(fscore_asia_marginal), aes(x=Cutoff,y=Precision.Recall.F.measure,color="green"))+
+  geom_line(data = data.frame(fscore_asia_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('F1 measure') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()
+```
+
+
+```{r}
+#.................accuracy vs cutoff analysis for asia Data.....................
+pred <- prediction(intscore_asia[,3], labels_asia[,3])
+f_asia <- performance(pred,"acc")
+fscore_asia = data.frame("Cutoff"=f_asia@x.values[[1]],"Accuracy"=f_asia@y.values[[1]])
+
+
+pred <- prediction(intscore_asia_prior[,3], labels_asia[,3])
+f_asia <- performance(pred,"acc")
+fscore_asia_prior = data.frame("Cutoff"=f_asia@x.values[[1]],"Accuracy"=f_asia@y.values[[1]])
+
+pred <- prediction(intscore_asia_prior_marginal[,3], labels_asia[,3])
+f_asia <- performance(pred,"acc")
+fscore_asia_marginal = data.frame("Cutoff"=f_asia@x.values[[1]],"Accuracy"=f_asia@y.values[[1]])
+
+
+pred <- prediction(intscore_asia_prior_vsp[,3], labels_asia[,3])
+f_asia <- performance(pred,"acc")
+fscore_asia_vsp = data.frame("Cutoff"=f_asia@x.values[[1]],"Accuracy"=f_asia@y.values[[1]])
+```
+
+```{r}
+#.................accuracy vs cutoff plotting for asia Data...........................
+tiff("/Users/megha/Documents/Kg2Causal/asiaAcc.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = fscore_asia, aes(x=Cutoff,y=Accuracy,color="red")) + geom_line(data = fscore_asia_prior, aes(x=Cutoff,y=Accuracy,color = "blue")) + 
+  geom_line(data = data.frame(fscore_asia_marginal), aes(x=Cutoff,y=Accuracy,color="green"))+
+  geom_line(data = data.frame(fscore_asia_vsp), aes(x=Cutoff,y=Accuracy,color="brown"))+ xlab('Cutoff') + ylab('Accuracy') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1)) 
+plot(p)
+dev.off()       
+```
+
+
+```{r}
+dag.mbde<-averaged.network(intscore_asia_prior, threshold = .85)
+
+a = compare(skeleton(dag.asia_groundtruth),skeleton(dag.mbde),  arcs = TRUE)
+asia_causal_skeleton = empty.graph(c("praf", "pmek", "plcg", "PIP2", "PIP3", "p44.42", "pakts473", "PKA", "PKC", "P38", "pjnk"  ),num=1)
+arcs(asia_causal_skeleton,check.cycles=FALSE)=a$tp 
+
+a= compare((dag.asia_groundtruth),(dag.mbde),  arcs = TRUE)
+asia_causal = empty.graph(c("praf", "pmek", "plcg", "PIP2", "PIP3", "p44.42", "pakts473", "PKA", "PKC", "P38", "pjnk"  ),num=1)
+arcs(asia_causal,check.cycles=FALSE)=a$tp
+
+graphviz.compare(asia_causal_skeleton, asia_causal)
+```
+
+
+
+
+

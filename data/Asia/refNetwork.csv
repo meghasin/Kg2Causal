@@ -1,0 +1,9 @@
+from,to,Type
+A,T,+
+S,L,+
+S,B,+
+B,D,+
+E,D,+
+T,E,+
+L,E,+
+E,X,+

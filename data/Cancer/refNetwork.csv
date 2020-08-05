@@ -1,0 +1,5 @@
+from,to,Type
+Pollution,Cancer,+
+Smoker,Cancer,+
+Cancer,Xray,+
+Cancer,Dyspnoea,+
