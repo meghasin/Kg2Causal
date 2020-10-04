@@ -30,6 +30,8 @@ library(RBGL)
 library(pcalg)
 library(ROCR)
 library(PRROC)
+library(gRain) 
+library(gRbase)
 ```
 
 
@@ -41,7 +43,7 @@ nodes<-names(HE)
 #names(INT)<-nodes
 #dag.HE_groundtruth = model2network("[A][S][T|A][L|S][B|S][D|B:E][E|T:L][X|E]")
 
-start_HE<-random.graph(nodes=nodes,method="melancon",num=100,burn.in=10^1, every=50)
+start_HE<-random.graph(nodes=nodes,method="melancon",num=200,burn.in=10^1, every=50)
 netlist<-lapply(start_HE,function(net){tabu(HE,score="mbde",iss=1,start=net,tabu=50)})
 intscore_HE<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
 dag.mbde_HE<-averaged.network(intscore_HE)
@@ -205,7 +207,7 @@ dev.off()
 
 
 ```{r}
-dag.mbde<-averaged.network(intscore_HE_prior, threshold = .85)
+dag.mbde<-averaged.network(intscore_HE_prior, threshold = .80)
 
 a = compare(skeleton(dag_HE_groundtruth),skeleton(dag.mbde),  arcs = TRUE)
 HE_causal_skeleton = empty.graph(c("poor_spirit","total_bilirubin" ,"prothrombin_time","infection"          ,"electrolyte_disorder","diabete","hepatorenal_syndrome", "HE"),num=1)
@@ -216,9 +218,93 @@ HE_causal = empty.graph(c("poor_spirit","total_bilirubin" ,"prothrombin_time","i
 arcs(HE_causal,check.cycles=FALSE)=a$tp
 
 graphviz.compare(HE_causal_skeleton, HE_causal)
+plot(dag.mbde)
+```
+
+Now that we have learned an optimized DAG from the HE data, we wanted to make inference and verify the causal links using our expert knowledge about the domain. First we start by learning parameters of the Causal bayesian Network given the learned DAG and the data
+
+```{r, warning = FALSE}
+#Learning parameters of the DAG using the gRain package which uses the junction tree 
+#belief propagation algorithm to extract inference for discrete Bayesian networks.
+fitted = bn.fit(dag.mbde, HE, method = "bayes")
+
+#Exporting a junction tree with the fitted parameters
+jtree = compile(as.grain(fitted))
+```
+
+```{r, warning = FALSE}
+#Changing the state of HE to "2" which means it is High
+jcondition = setFinding(jtree, nodes = "HE", states = "2")
+mutbn = compile(as.grain(mutilated(fitted, evidence = list(HE = "2"))))
+
+print("Before intervention: ")
+print(querygrain(jtree, nodes = "poor_spirit")$poor_spirit)
+
+print("After intervention: ")
+print(querygrain(mutbn, nodes = "poor_spirit")$poor_spirit)
 ```
 
 
 
+Plotting the change of Intervening
 
+```{r, warning = FALSE}
+#Plotting the change of Intervening
+df = data.frame(withoutIntv = c(querygrain(jtree, nodes = "poor_spirit")
+                                $poor_spirit),
+                withIntv = c(querygrain(mutbn, nodes = "poor_spirit")
+                             $poor_spirit))
+
+mx <- t(as.matrix(df))
+colnames(mx) <- c(1,2)
+
+colours = c("red","blue")
+# note the use of ylim to give 30% space for the legend
+barplot(mx,main='Effect of Intervention on HE',ylab='Percentage', xlab='Poor Spirit',
+        beside = TRUE, 
+        col=colours)
+# to add a box around the plot
+box()
+
+# add a legend
+legend('topright',fill=colours,legend=c('Without Intv','With Intv'))
+```
+
+```{r, warning = FALSE}
+#Changing the state of HE to "2" which means it is High
+jcondition = setFinding(jtree, nodes = "HE", states = "2")
+mutbn = compile(as.grain(mutilated(fitted, evidence = list(HE = "2"))))
+
+print("Before intervention: ")
+print(querygrain(jtree, nodes = "diabete")$diabete)
+
+print("After intervention: ")
+print(querygrain(mutbn, nodes = "diabete")$diabete)
+```
+
+
+
+Plotting the change of Intervening
+
+```{r, warning = FALSE}
+#Plotting the change of Intervening
+df = data.frame(withoutIntv = c(querygrain(jtree, nodes = "diabete")
+                                $diabete),
+                withIntv = c(querygrain(mutbn, nodes = "diabete")
+                             $diabete))
+
+mx <- t(as.matrix(df))
+colnames(mx) <- c(1,2)
+
+colours = c("red","blue")
+# note the use of ylim to give 30% space for the legend
+barplot(mx,main='Effect of Intervention on HE',ylab='Percentage', xlab='diabete',
+        beside = TRUE, 
+        col=colours)
+# to add a box around the plot
+box()
+
+# add a legend
+legend('topright',fill=colours,legend=c('Without Intv','With Intv'))
+```
 
