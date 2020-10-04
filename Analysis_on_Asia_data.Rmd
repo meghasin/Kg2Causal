@@ -15,17 +15,17 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 #install.packages("bnlearn")
 library(bnlearn)
-source("http://bioconductor.org/biocLite.R")
-biocLite("Rgraphviz")
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-BiocManager::install()
-BiocManager::install(c("Rgraphviz"))
+#source("http://bioconductor.org/biocLite.R")
+#biocLite("Rgraphviz")
+#if (!requireNamespace("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+#BiocManager::install()
+#BiocManager::install(c("Rgraphviz"))
 library(Rgraphviz)
 library(ggplot2)
-install.packages("pcalg")
-source("http://bioconductor.org/biocLite.R") 
-BiocManager::install(c("RBGL"))
+#install.packages("pcalg")
+#source("http://bioconductor.org/biocLite.R") 
+#BiocManager::install(c("RBGL"))
 library(RBGL)
 library(pcalg)
 library(ROCR)
@@ -34,17 +34,20 @@ library(PRROC)
 
 
 ```{r}
-#INT<-sapply(1:11,function(x){which(asia$INT==x)})
-nodes<-names(asia)
-#names(INT)<-nodes
+asia <- read.csv("data/Asia/asia_mut2.csv", header = TRUE)
+asia[]= lapply(asia, as.factor)
+INT<-sapply(1:8,function(x){which(asia$INT==x)})
+
+nodes<-names(asia[1:8])
+names(INT)<-nodes
 dag.asia_groundtruth = model2network("[A][S][T|A][L|S][B|S][D|B:E][E|T:L][X|E]")
 
 start_asia<-random.graph(nodes=nodes,method="melancon",num=100,burn.in=10^1, every=50)
-netlist<-lapply(start_asia,function(net){tabu(asia,score="mbde",iss=1,start=net,tabu=50)})
+netlist<-lapply(start_asia,function(net){tabu(asia[,1:8],score="mbde",iss=1,exp=INT,start=net,tabu=50)})
 intscore_asia<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
 dag.mbde_asia<-averaged.network(intscore_asia)
 graphviz.plot(dag.mbde_asia)
-compare((dag.asia_groundtruth),(dag.mbde_asia),  arcs = TRUE)
+compare((dag.asia_groundtruth),(dag.mbde_asia))
 
 
 knowledge_scores <- intscore_asia[,1:3]
@@ -53,11 +56,11 @@ knowledge_scores[,3]<- 0.2
 knowledge_scores$strength[c(35,26,42,11,19,42)] <- 0.5
 
 beta <- data.frame(from=knowledge_scores[,1], to = knowledge_scores[,2], prob=knowledge_scores[,3],stringsAsFactors = FALSE)
-netlist_prior<-lapply(start_asia,function(net){tabu(asia,score="mbde", prior = "cs",beta=beta,iss=1,start=net,tabu=50)})
+netlist_prior<-lapply(start_asia,function(net){tabu(asia[,1:8],score="mbde", prior = "cs",beta=beta,iss=1,exp=INT,start=net,tabu=50)})
 
-netlist_prior_marginal<-lapply(start_asia,function(net){tabu(asia,score="mbde", prior = "marginal",iss=1,start=net,tabu=50)})
+netlist_prior_marginal<-lapply(start_asia,function(net){tabu(asia[,1:8],score="mbde", prior = "marginal",exp=INT,iss=1,start=net,tabu=50)})
 
-netlist_prior_vsp<-lapply(start_asia,function(net){tabu(asia,score="mbde", prior = "vsp",iss=1,start=net,tabu=50)})
+netlist_prior_vsp<-lapply(start_asia,function(net){tabu(asia[,1:8],score="mbde", prior = "vsp",exp=INT,iss=1,start=net,tabu=50)})
 
 
 

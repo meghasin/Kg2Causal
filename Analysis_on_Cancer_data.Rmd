@@ -34,16 +34,16 @@ library(PRROC)
 
 
 ```{r}
-dag.cancer_groundtruth = model2network("[Pollution][Smoker][Cancer|Pollution][Cancer|Smoker][Xray|Cancer][Dyspnoea|Cancer]")
+dag.cancer_groundtruth = model2network("[Pollution][Smoker][Cancer|Pollution:Smoker][Xray|Cancer][Dyspnoea|Cancer]")
 
-cancer = rbn(bn,1000)
+cancer = rbn(cancer,1000)
 nodes<-names(cancer)
 start_cancer<-random.graph(nodes=nodes,method="melancon",num=100,burn.in=10^1, every=50)
 netlist<-lapply(start_cancer,function(net){tabu(cancer,score="mbde",iss=1,start=net,tabu=50)})
 intscore_cancer<-custom.strength(netlist,nodes=nodes,cpdag=FALSE)
 dag.mbde_cancer<-averaged.network(intscore_cancer)
 graphviz.plot(dag.mbde_cancer)
-compare((dag.cancer_groundtruth),(dag.mbde_cancer),  arcs = TRUE)
+compare((dag.cancer_groundtruth),(dag.mbde_cancer))
 
 
 knowledge_scores <- intscore_cancer[,1:3]

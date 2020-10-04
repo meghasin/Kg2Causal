@@ -2,8 +2,8 @@ from,to,Type
 A,T,+
 S,L,+
 S,B,+
-B,D,+
-E,D,+
 T,E,+
 L,E,+
+B,D,+
+E,D,+
 E,X,+
