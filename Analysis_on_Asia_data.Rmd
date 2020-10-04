@@ -34,7 +34,7 @@ library(PRROC)
 
 
 ```{r}
-asia <- read.csv("data/Asia/asia_mut2.csv", header = TRUE)
+asia <- read.csv("data/Asia/asia_mut.csv", header = TRUE)
 asia[]= lapply(asia, as.factor)
 INT<-sapply(1:8,function(x){which(asia$INT==x)})
 
@@ -56,6 +56,7 @@ knowledge_scores[,3]<- 0.2
 knowledge_scores$strength[c(35,26,42,11,19,42)] <- 0.5
 
 beta <- data.frame(from=knowledge_scores[,1], to = knowledge_scores[,2], prob=knowledge_scores[,3],stringsAsFactors = FALSE)
+
 netlist_prior<-lapply(start_asia,function(net){tabu(asia[,1:8],score="mbde", prior = "cs",beta=beta,iss=1,exp=INT,start=net,tabu=50)})
 
 netlist_prior_marginal<-lapply(start_asia,function(net){tabu(asia[,1:8],score="mbde", prior = "marginal",exp=INT,iss=1,start=net,tabu=50)})
@@ -95,6 +96,8 @@ for (i in 1:nrow(labels_asia)){
   }
 }
 ```
+
+
 ```{r}
 #.................ROC curve analysis for asia Data...........................
 PRROC_obj1 <- roc.curve(scores.class0 = intscore_asia[,3], weights.class0=labels_asia[,3],curve=TRUE)
@@ -102,17 +105,20 @@ PRROC_obj2 <- roc.curve(scores.class0 = intscore_asia_prior[,3], weights.class0=
 PRROC_obj3 <- roc.curve(scores.class0 = intscore_asia_prior_marginal[,3], weights.class0=labels_asia[,3],curve=TRUE)
 PRROC_obj4 <- roc.curve(scores.class0 = intscore_asia_prior_vsp[,3], weights.class0=labels_asia[,3],curve=TRUE)
 ```
+
 ```{r}
-#.................ROC curve plot for asia Data...........................
-tiff("/Users/megha/Documents/Kg2Causal/Plots/asiaROC.tiff", units="in", width=5, height=5, res=600)
+#.................ROC Plot for asia Data...........................
+tiff("/Users/megha/Work_Space/CausalAnalysis_with_KGprior/Plots/asiaROC.tiff", units="in", width=5, height=5, res=600)
+
 p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
   geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
-  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('FP rate') + ylab('TP rate') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('FP rate') + ylab('TP rate') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown")) +
+    theme(text = element_text(size=30),
         axis.text.x = element_text(hjust=1)) 
 plot(p)
-dev.off()
-       
-```
+dev.off() 
+```  
+
 ```{r}
 #.................PR curve analysis for asia Data...........................
 PRROC_obj1 <- pr.curve(scores.class0 = intscore_asia[,3], weights.class0=labels_asia[,3],curve=TRUE)
@@ -120,22 +126,26 @@ PRROC_obj2 <- pr.curve(scores.class0 = intscore_asia_prior[,3], weights.class0=l
 PRROC_obj3 <- pr.curve(scores.class0 = intscore_asia_prior_marginal[,3], weights.class0=labels_asia[,3],curve=TRUE)
 PRROC_obj4 <- pr.curve(scores.class0 = intscore_asia_prior_vsp[,3], weights.class0=labels_asia[,3],curve=TRUE)
 ```
+
 ```{r}
-#.................PR curve plot for asia Data...........................
-tiff("/Users/megha/Documents/Kg2Causal/asiaPR.tiff", units="in", width=5, height=5, res=600)
+#.................PR Plot for asia Data...........................
+tiff("/Users/megha/Work_Space/CausalAnalysis_with_KGprior/Plots/asiaPR.tiff", units="in", width=5, height=5, res=600)
+
 p = ggplot() +     geom_line(data = data.frame(PRROC_obj1$curve), aes(x=X1,y=X2,color="red")) + geom_line(data = data.frame(PRROC_obj2$curve), aes(x=X1,y=X2,color = "blue")) + 
   geom_line(data = data.frame(PRROC_obj3$curve), aes(x=X1,y=X2,color="green"))+
-  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('Recall') + ylab('Precision') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+  geom_line(data = data.frame(PRROC_obj4$curve), aes(x=X1,y=X2,color="brown"))+ xlab('Recall') + ylab('Precision') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown")) +
+    theme(text = element_text(size=30),
         axis.text.x = element_text(hjust=1)) 
 plot(p)
-dev.off()
-       
+dev.off() 
 ```
+
 ```{r}
 #.................F1 score vs cutoff analysis for asia Data...........................
 pred <- prediction(intscore_asia[,3], labels_asia[,3])
 f_asia <- performance(pred,"f")
 fscore_asia = data.frame("Cutoff"=f_asia@x.values[[1]],"Precision-Recall F measure"=f_asia@y.values[[1]])
+
 
 pred <- prediction(intscore_asia_prior[,3], labels_asia[,3])
 f_asia <- performance(pred,"f")
@@ -145,70 +155,241 @@ pred <- prediction(intscore_asia_prior_marginal[,3], labels_asia[,3])
 f_asia <- performance(pred,"f")
 fscore_asia_marginal = data.frame("Cutoff"=f_asia@x.values[[1]],"Precision-Recall F measure"=f_asia@y.values[[1]])
 
+
 pred <- prediction(intscore_asia_prior_vsp[,3], labels_asia[,3])
 f_asia <- performance(pred,"f")
 fscore_asia_vsp = data.frame("Cutoff"=f_asia@x.values[[1]],"Precision-Recall F measure"=f_asia@y.values[[1]])
 ```
+
 ```{r}
-#.................F1 score vs cutoff plotting for asia Data...........................
-tiff("/Users/megha/Documents/Kg2Causal/asiaF1.tiff", units="in", width=5, height=5, res=600)
+#.................F1 score vs cutoff plot for asia Data...........................
+tiff("/Users/megha/Work_Space/CausalAnalysis_with_KGprior/Plots/asiaF1.tiff", units="in", width=5, height=5, res=600)
 p = ggplot() +     geom_line(data = fscore_asia, aes(x=Cutoff,y=Precision.Recall.F.measure,color="red")) + geom_line(data = fscore_asia_prior, aes(x=Cutoff,y=Precision.Recall.F.measure,color = "blue")) + 
   geom_line(data = data.frame(fscore_asia_marginal), aes(x=Cutoff,y=Precision.Recall.F.measure,color="green"))+
-  geom_line(data = data.frame(fscore_asia_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('F1 measure') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
+  geom_line(data = data.frame(fscore_asia_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('F1 measure') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown")) +
+    theme(text = element_text(size=30),
         axis.text.x = element_text(hjust=1)) 
 plot(p)
-dev.off()
+dev.off()  
 ```
 
-
 ```{r}
-#.................accuracy vs cutoff analysis for asia Data.....................
+#.................accuracy vs cutoff analysis for asia Data...........................
 pred <- prediction(intscore_asia[,3], labels_asia[,3])
 f_asia <- performance(pred,"acc")
-fscore_asia = data.frame("Cutoff"=f_asia@x.values[[1]],"Accuracy"=f_asia@y.values[[1]])
+fscore_asia = data.frame("Cutoff"=f_asia@x.values[[1]],"Precision-Recall F measure"=f_asia@y.values[[1]])
 
 
 pred <- prediction(intscore_asia_prior[,3], labels_asia[,3])
 f_asia <- performance(pred,"acc")
-fscore_asia_prior = data.frame("Cutoff"=f_asia@x.values[[1]],"Accuracy"=f_asia@y.values[[1]])
+fscore_asia_prior = data.frame("Cutoff"=f_asia@x.values[[1]],"Precision-Recall F measure"=f_asia@y.values[[1]])
 
 pred <- prediction(intscore_asia_prior_marginal[,3], labels_asia[,3])
 f_asia <- performance(pred,"acc")
-fscore_asia_marginal = data.frame("Cutoff"=f_asia@x.values[[1]],"Accuracy"=f_asia@y.values[[1]])
+fscore_asia_marginal = data.frame("Cutoff"=f_asia@x.values[[1]],"Precision-Recall F measure"=f_asia@y.values[[1]])
 
 
 pred <- prediction(intscore_asia_prior_vsp[,3], labels_asia[,3])
 f_asia <- performance(pred,"acc")
-fscore_asia_vsp = data.frame("Cutoff"=f_asia@x.values[[1]],"Accuracy"=f_asia@y.values[[1]])
+fscore_asia_vsp = data.frame("Cutoff"=f_asia@x.values[[1]],"Precision-Recall F measure"=f_asia@y.values[[1]])
+
 ```
 
 ```{r}
-#.................accuracy vs cutoff plotting for asia Data...........................
-tiff("/Users/megha/Documents/Kg2Causal/asiaAcc.tiff", units="in", width=5, height=5, res=600)
-p = ggplot() +     geom_line(data = fscore_asia, aes(x=Cutoff,y=Accuracy,color="red")) + geom_line(data = fscore_asia_prior, aes(x=Cutoff,y=Accuracy,color = "blue")) + 
-  geom_line(data = data.frame(fscore_asia_marginal), aes(x=Cutoff,y=Accuracy,color="green"))+
-  geom_line(data = data.frame(fscore_asia_vsp), aes(x=Cutoff,y=Accuracy,color="brown"))+ xlab('Cutoff') + ylab('Accuracy') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+theme(text = element_text(size=30),
-        axis.text.x = element_text(hjust=1)) 
+#.................accuracy score vs cutoff plot for asia Data...........................
+tiff("/Users/megha/Work_Space/CausalAnalysis_with_KGprior/Plots/asiaAcc.tiff", units="in", width=5, height=5, res=600)
+p = ggplot() +     geom_line(data = fscore_asia, aes(x=Cutoff,y=Precision.Recall.F.measure,color="red")) + geom_line(data = fscore_asia_prior, aes(x=Cutoff,y=Precision.Recall.F.measure,color = "blue")) + 
+  geom_line(data = data.frame(fscore_asia_marginal), aes(x=Cutoff,y=Precision.Recall.F.measure,color="green"))+
+  geom_line(data = data.frame(fscore_asia_vsp), aes(x=Cutoff,y=Precision.Recall.F.measure,color="brown"))+ xlab('Cutoff') + ylab('Accuracy') + geom_smooth(span = 0.5) +scale_color_identity(name = "Method",breaks = c("blue","red","green","brown"))+
+    theme(text = element_text(size=30),
+        axis.text.x = element_text(hjust=1),legend.position="bottom") 
 plot(p)
-dev.off()       
+dev.off() 
+```
+
+
+Using Learn and Vote
+
+```{r}
+obs=asia_mut[1:500,]
+exp1=asia_mut[501:1000,]
+exp2=asia_mut[1001:1500,]
+```
+
+Using Uniform prior
+
+```{r}
+#obs
+INT<-sapply(1:8,function(x){which(obs$INT==x)})
+nodes<-names(obs[1:8])
+names(INT)<-nodes
+start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start, function(net) {tabu(obs[,1:8], score = "mbde", exp=INT, iss = 1, start = net, tabu=50) })
+arcs_obs = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp1
+INT<-sapply(1:8,function(x){which(exp1$INT==x)})
+nodes<-names(exp1[1:8])
+names(INT)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist<-lapply(start,function(net){tabu(exp1[,1:8],score="mbde",exp=INT,iss=1,start=net,tabu=50)})
+arcs_mut1 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp2
+INT<-sapply(1:8,function(x){which(exp2$INT==x)})
+nodes<-names(exp2[1:8])
+names(INT)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist<-lapply(start,function(net){tabu(exp2[,1:8],score="mbde",exp=INT,iss=1,start=net,tabu=50)})
+arcs_mut2 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
 ```
 
 
 ```{r}
-dag.mbde<-averaged.network(intscore_asia_prior, threshold = .85)
+#average
+intscore_pooled=arcs_obs
+intscore_pooled[,3]=intscore_pooled[,3]  + arcs_mut1[,3]+ arcs_mut2[,3]
+intscore_pooled[,4]=intscore_pooled[,4] + arcs_mut1[,4]+ arcs_mut2[,4]
+intscore_pooled[,3]=intscore_pooled[,3]/3
+intscore_pooled[,4]=intscore_pooled[,4]/3
+```
 
-a = compare(skeleton(dag.asia_groundtruth),skeleton(dag.mbde),  arcs = TRUE)
-asia_causal_skeleton = empty.graph(c("praf", "pmek", "plcg", "PIP2", "PIP3", "p44.42", "pakts473", "PKA", "PKC", "P38", "pjnk"  ),num=1)
-arcs(asia_causal_skeleton,check.cycles=FALSE)=a$tp 
+Using KG as prior
 
-a= compare((dag.asia_groundtruth),(dag.mbde),  arcs = TRUE)
-asia_causal = empty.graph(c("praf", "pmek", "plcg", "PIP2", "PIP3", "p44.42", "pakts473", "PKA", "PKC", "P38", "pjnk"  ),num=1)
-arcs(asia_causal,check.cycles=FALSE)=a$tp
+```{r}
+#obs
+INT<-sapply(1:8,function(x){which(obs$INT==x)})
+nodes<-names(obs[1:8])
+names(INT)<-nodes
+start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start, function(net) {tabu(obs[,1:8], score="mbde", prior = "cs",beta=beta,iss=1,exp=INT,start=net,tabu=50) })
+arcs_obs = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
 
-graphviz.compare(asia_causal_skeleton, asia_causal)
+#exp1
+INT<-sapply(1:8,function(x){which(exp1$INT==x)})
+nodes<-names(exp1[1:8])
+names(INT)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist<-lapply(start,function(net){tabu(exp1[,1:8],score="mbde", prior = "cs",beta=beta,iss=1,exp=INT,start=net,tabu=50)})
+arcs_mut1 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp2
+INT<-sapply(1:8,function(x){which(exp2$INT==x)})
+nodes<-names(exp2[1:8])
+names(INT)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist<-lapply(start,function(net){tabu(exp2[,1:8],score="mbde", prior = "cs",beta=beta,iss=1,exp=INT,start=net,tabu=50)})
+arcs_mut2 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
 ```
 
 
+```{r}
+#average
+intscore_pooled_kg=arcs_obs
+intscore_pooled_kg[,3]=intscore_pooled_kg[,3]  + arcs_mut1[,3]+ arcs_mut2[,3]
+intscore_pooled_kg[,4]=intscore_pooled_kg[,4] + arcs_mut1[,4]+ arcs_mut2[,4]
+intscore_pooled_kg[,3]=intscore_pooled_kg[,3]/3
+intscore_pooled_kg[,4]=intscore_pooled_kg[,4]/3
+```
+
+Using Marginal prior
+
+```{r}
+#obs
+INT<-sapply(1:8,function(x){which(obs$INT==x)})
+nodes<-names(obs[1:8])
+names(INT)<-nodes
+start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start, function(net) {tabu(obs[,1:8], score = "mbde", exp=INT, prior = "marginal", iss = 1, start = net, tabu=50) })
+arcs_obs = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp1
+INT<-sapply(1:8,function(x){which(exp1$INT==x)})
+nodes<-names(exp1[1:8])
+names(INT)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist<-lapply(start,function(net){tabu(exp1[,1:8],score="mbde",exp=INT, prior = "marginal",iss=1,start=net,tabu=50)})
+arcs_mut1 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp2
+INT<-sapply(1:8,function(x){which(exp2$INT==x)})
+nodes<-names(exp2[1:8])
+names(INT)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist<-lapply(start,function(net){tabu(exp2[,1:8],score="mbde",exp=INT, prior = "marginal",iss=1,start=net,tabu=50)})
+arcs_mut2 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+```
 
 
+```{r}
+#average
+intscore_pooled_marginal=arcs_obs
+intscore_pooled_marginal[,3]=intscore_pooled_marginal[,3]  + arcs_mut1[,3]+ arcs_mut2[,3]
+intscore_pooled_marginal[,4]=intscore_pooled_marginal[,4] + arcs_mut1[,4]+ arcs_mut2[,4]
+intscore_pooled_marginal[,3]=intscore_pooled_marginal[,3]/3
+intscore_pooled_marginal[,4]=intscore_pooled_marginal[,4]/3
+```
 
+
+Using vsp prior
+
+```{r}
+#obs
+INT<-sapply(1:8,function(x){which(obs$INT==x)})
+nodes<-names(obs[1:8])
+names(INT)<-nodes
+start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start, function(net) {tabu(obs[,1:8], score = "mbde", exp=INT, prior = "vsp", iss = 1, start = net, tabu=50) })
+arcs_obs = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp1
+INT<-sapply(1:8,function(x){which(exp1$INT==x)})
+nodes<-names(exp1[1:8])
+names(INT)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist<-lapply(start,function(net){tabu(exp1[,1:8],score="mbde",exp=INT, prior = "vsp",iss=1,start=net,tabu=50)})
+arcs_mut1 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp2
+INT<-sapply(1:8,function(x){which(exp2$INT==x)})
+nodes<-names(exp2[1:8])
+names(INT)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist<-lapply(start,function(net){tabu(exp2[,1:8],score="mbde",exp=INT, prior = "vsp",iss=1,start=net,tabu=50)})
+arcs_mut2 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+```
+
+
+```{r}
+#average
+intscore_pooled_vsp=arcs_obs
+intscore_pooled_vsp[,3]=intscore_pooled_vsp[,3]  + arcs_mut1[,3]+ arcs_mut2[,3]
+intscore_pooled_vsp[,4]=intscore_pooled_vsp[,4] + arcs_mut1[,4]+ arcs_mut2[,4]
+intscore_pooled_vsp[,3]=intscore_pooled_vsp[,3]/3
+intscore_pooled_vsp[,4]=intscore_pooled_vsp[,4]/3
+```
+
+
+```{r}
+#.................ROC curve analysis for asia Data...........................
+PRROC_obj1 <- roc.curve(scores.class0 = intscore_pooled[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj2 <- roc.curve(scores.class0 = intscore_pooled_kg[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj3 <- roc.curve(scores.class0 = intscore_pooled_marginal[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj4 <- roc.curve(scores.class0 = intscore_pooled_vsp[,3], weights.class0=labels_asia[,3],curve=TRUE)
+```
+
+```{r}
+#.................ROC curve analysis for asia Data...........................
+PRROC_obj1 <- pr.curve(scores.class0 = intscore_pooled[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj2 <- pr.curve(scores.class0 = intscore_pooled_kg[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj3 <- pr.curve(scores.class0 = intscore_pooled_marginal[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj4 <- pr.curve(scores.class0 = intscore_pooled_vsp[,3], weights.class0=labels_asia[,3],curve=TRUE)
+```

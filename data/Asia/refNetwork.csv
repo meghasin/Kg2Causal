@@ -1,7 +1,7 @@
 from,to,Type
 A,T,+
-S,L,+
 S,B,+
+S,L,+
 T,E,+
 L,E,+
 B,D,+
