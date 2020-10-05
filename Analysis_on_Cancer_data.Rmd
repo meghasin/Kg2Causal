@@ -198,4 +198,152 @@ dev.off()
 
 
 
+Using Learn and Vote
+
+```{r}
+obs=cancer_mut[1:500,]
+exp1=cancer_mut[501:1000,]
+```
+Using Uniform prior
+
+```{r}
+#obs
+INT<-sapply(1:5,function(x){which(obs$INT==x)})
+nodes<-names(obs[1:5])
+names(INT)<-nodes
+start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start, function(net) {tabu(obs[,1:5], score = "mbde", exp=INT, iss = 1, start = net, tabu=50) })
+arcs_obs = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp1
+INT<-sapply(1:5,function(x){which(exp1$INT==x)})
+nodes<-names(exp1[1:5])
+names(INT)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist<-lapply(start,function(net){tabu(exp1[,1:5],score="mbde",exp=INT,iss=1,start=net,tabu=50)})
+arcs_mut1 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+```
+
+
+```{r}
+#average
+intscore_pooled=arcs_obs
+intscore_pooled[,3]=intscore_pooled[,3]  + arcs_mut1[,3]
+intscore_pooled[,4]=intscore_pooled[,4] + arcs_mut1[,4]
+intscore_pooled[,3]=intscore_pooled[,3]/2
+intscore_pooled[,4]=intscore_pooled[,4]/2
+```
+
+Using KG as prior
+
+```{r}
+#obs
+INT<-sapply(1:5,function(x){which(obs$INT==x)})
+nodes<-names(obs[1:5])
+names(INT)<-nodes
+start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start, function(net) {tabu(obs[,1:5], score="mbde", prior = "cs",beta=beta,iss=1,exp=INT,start=net,tabu=50) })
+arcs_obs = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp1
+INT<-sapply(1:5,function(x){which(exp1$INT==x)})
+nodes<-names(exp1[1:5])
+names(INT)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist<-lapply(start,function(net){tabu(exp1[,1:5],score="mbde", prior = "cs",beta=beta,iss=1,exp=INT,start=net,tabu=50)})
+arcs_mut1 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+```
+
+
+```{r}
+#average
+intscore_pooled_kg=arcs_obs
+intscore_pooled_kg[,3]=intscore_pooled_kg[,3]  + arcs_mut1[,3]
+intscore_pooled_kg[,4]=intscore_pooled_kg[,4] + arcs_mut1[,4]
+intscore_pooled_kg[,3]=intscore_pooled_kg[,3]/2
+intscore_pooled_kg[,4]=intscore_pooled_kg[,4]/2
+```
+
+Using Marginal prior
+
+```{r}
+#obs
+INT<-sapply(1:5,function(x){which(obs$INT==x)})
+nodes<-names(obs[1:5])
+names(INT)<-nodes
+start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start, function(net) {tabu(obs[,1:5], score = "mbde", exp=INT, prior = "marginal", iss = 1, start = net, tabu=50) })
+arcs_obs = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp1
+INT<-sapply(1:5,function(x){which(exp1$INT==x)})
+nodes<-names(exp1[1:5])
+names(INT)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist<-lapply(start,function(net){tabu(exp1[,1:5],score="mbde",exp=INT, prior = "marginal",iss=1,start=net,tabu=50)})
+arcs_mut1 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+```
+
+
+```{r}
+#average
+intscore_pooled_marginal=arcs_obs
+intscore_pooled_marginal[,3]=intscore_pooled_marginal[,3]  + arcs_mut1[,3]
+intscore_pooled_marginal[,4]=intscore_pooled_marginal[,4] + arcs_mut1[,4]
+intscore_pooled_marginal[,3]=intscore_pooled_marginal[,3]/2
+intscore_pooled_marginal[,4]=intscore_pooled_marginal[,4]/2
+```
+
+
+Using vsp prior
+
+```{r}
+#obs
+INT<-sapply(1:5,function(x){which(obs$INT==x)})
+nodes<-names(obs[1:5])
+names(INT)<-nodes
+start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start, function(net) {tabu(obs[,1:5], score = "mbde", exp=INT, prior = "vsp", iss = 1, start = net, tabu=50) })
+arcs_obs = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp1
+INT<-sapply(1:5,function(x){which(exp1$INT==x)})
+nodes<-names(exp1[1:5])
+names(INT)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist<-lapply(start,function(net){tabu(exp1[,1:5],score="mbde",exp=INT, prior = "vsp",iss=1,start=net,tabu=50)})
+arcs_mut1 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+```
+
+
+```{r}
+#average
+intscore_pooled_vsp=arcs_obs
+intscore_pooled_vsp[,3]=intscore_pooled_vsp[,3]  + arcs_mut1[,3]
+intscore_pooled_vsp[,4]=intscore_pooled_vsp[,4] + arcs_mut1[,4]
+intscore_pooled_vsp[,3]=intscore_pooled_vsp[,3]/2
+intscore_pooled_vsp[,4]=intscore_pooled_vsp[,4]/2
+```
+
+
+```{r}
+#.................ROC curve analysis for asia Data...........................
+PRROC_obj1 <- roc.curve(scores.class0 = intscore_pooled[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj2 <- roc.curve(scores.class0 = intscore_pooled_kg[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj3 <- roc.curve(scores.class0 = intscore_pooled_marginal[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj4 <- roc.curve(scores.class0 = intscore_pooled_vsp[,3], weights.class0=labels_asia[,3],curve=TRUE)
+```
+
+```{r}
+#.................ROC curve analysis for asia Data...........................
+PRROC_obj1 <- pr.curve(scores.class0 = intscore_pooled[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj2 <- pr.curve(scores.class0 = intscore_pooled_kg[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj3 <- pr.curve(scores.class0 = intscore_pooled_marginal[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj4 <- pr.curve(scores.class0 = intscore_pooled_vsp[,3], weights.class0=labels_asia[,3],curve=TRUE)
+```
+
 

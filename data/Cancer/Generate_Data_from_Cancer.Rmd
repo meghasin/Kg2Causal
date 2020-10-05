@@ -37,7 +37,7 @@ dag.cancer_groundtruth = model2network("[Pollution][Smoker][Cancer|Pollution:Smo
 
 ```{r}
 #Sampling some observational data points from asia dataset
-cancer_mut_obs = rbn(cancer,1000)
+cancer_mut_obs = rbn(cancer,500)
 
 #intitializing additional column for Intervened target
 Int_col = 0
@@ -59,7 +59,7 @@ cancer_mut_network = mutilated(fitted, evidence = list(Smoker = "True"))
 jmutilated = compile(as.grain(cancer_mut_network))
 
 #Sampling experimental data
-cancer_mut_exp = rbn(cancer_mut_network,400)
+cancer_mut_exp = rbn(cancer_mut_network,500)
 
 #Intitializing additional column for the known intervened target L
 Int_col = 2
