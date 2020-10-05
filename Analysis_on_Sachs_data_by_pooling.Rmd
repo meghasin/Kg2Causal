@@ -1,0 +1,158 @@
+ ---
+title: "Learning Protein Signalling Network"
+author: "Megha"
+date: "March 7, 2018"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r include=FALSE, cache=FALSE}
+#loading the packages
+install.packages("bnlearn")
+library(bnlearn)
+source("http://bioconductor.org/biocLite.R")
+biocLite("Rgraphviz")
+library(Rgraphviz)
+library(ggplot2)
+source("https://bioconductor.org/biocLite.R")  ##Use to load gRain package since RBGL is removed from CRAN repository
+biocLite("RBGL")
+library(gRain) 
+library(gRbase)
+```
+
+
+```{r}
+datamerged = read.table("data/Sachs/sachs.interventional.txt", header = TRUE,colClasses = "factor")
+exp1=datamerged[1:600,]
+exp2=datamerged[601:1200,]
+exp3=datamerged[1201:1800,]
+exp4=datamerged[1801:2400,]
+exp5=datamerged[2401:3000,]
+exp6=datamerged[3001:3600,]
+exp7=datamerged[3601:4200,]
+exp8=datamerged[4201:4800,]
+exp9=datamerged[4801:5400,]
+
+
+#exp1
+INT_comb<-sapply(1:11,function(x){which(exp1$INT==x)})
+nodes<-names(exp1[1:11])
+names(INT_comb)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist<-lapply(start_sachs,function(net){tabu(exp1[,1:11],score="mbde",exp=INT_comb,iss=1,start=net,tabu=50)})
+arcs_datamerged1 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp2
+INT_comb<-sapply(1:11,function(x){which(exp2$INT==x)})
+nodes<-names(exp2[1:11])
+names(INT_comb)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start_sachs, function(net){tabu(exp2[,1:11], score = "mbde", exp=INT_comb, iss = 1, start = net, tabu=50) })
+arcs_datamerged2 = custom.strength(netlist, nodes = nodes,  cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp3
+INT_comb<-sapply(1:11,function(x){which(exp3$INT==x)})
+nodes<-names(exp3[1:11])
+names(INT_comb)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start_sachs, function(net) {tabu(exp3[,1:11], score = "mbde",  exp=INT_comb, iss = 1, start = net, tabu=50) })
+arcs_datamerged3 = custom.strength(netlist, nodes = nodes,cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp4
+INT_comb<-sapply(1:11,function(x){which(exp4$INT==x)})
+nodes<-names(exp4[1:11])
+names(INT_comb)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start_sachs, function(net) {tabu(exp4[,1:11], score = "mbde", exp=INT_comb, iss = 1, start = net, tabu=50) })
+arcs_datamerged4 = custom.strength(netlist, nodes = nodes,  cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp5
+INT_comb<-sapply(1:11,function(x){which(exp5$INT==x)})
+nodes<-names(exp5[1:11])
+names(INT_comb)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start_sachs, function(net) {tabu(exp5[,1:11], score = "mbde",  exp=INT_comb, iss = 1, start = net, tabu=50) })
+arcs_datamerged5 = custom.strength(netlist, nodes = nodes,   cpdag = FALSE)
+
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp6
+INT_comb<-sapply(1:11,function(x){which(exp6$INT==x)})
+nodes<-names(exp6[1:11])
+names(INT_comb)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start_sachs, function(net) {tabu(exp6[,1:11], score = "mbde", exp=INT_comb, iss = 1, start = net, tabu=50) })
+arcs_datamerged6 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp7
+INT_comb<-sapply(1:11,function(x){which(exp7$INT==x)})
+nodes<-names(exp7[1:11])
+names(INT_comb)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start_sachs, function(net) {tabu(exp7[,1:11], score = "mbde", exp=INT_comb, iss = 1, start = net, tabu=50) })
+arcs_datamerged7 = custom.strength(netlist, nodes = nodes,    cpdag = FALSE)
+#-----------------------------------------------------------------------------------------------------------------
+
+#exp8
+INT_comb<-sapply(1:11,function(x){which(exp8$INT==x)})
+nodes<-names(exp8[1:11])
+names(INT_comb)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start_sachs, function(net) {tabu(exp8[,1:11], score = "mbde", exp=INT_comb, iss = 1, start = net, tabu=50) })
+arcs_datamerged8 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+
+#----------------------------------------------------------------------------------------------------------------
+
+#exp9
+INT_comb<-sapply(1:11,function(x){which(exp9$INT==x)})
+nodes<-names(exp9[1:11])
+names(INT_comb)<-nodes
+#start<-random.graph(nodes=nodes,method="melancon",num=500,burn.in=10^5, every=50)
+netlist = lapply(start_sachs, function(net) {tabu(exp9[,1:11], score = "mbde",  exp=INT_comb, iss = 1, start = net, tabu=50) })
+arcs_datamerged9 = custom.strength(netlist, nodes = nodes, cpdag = FALSE)
+
+#-----------------------------------------------------------------------------------------------------------------
+
+```
+
+
+```{r}
+#average
+intscore_combgmt=arcs_datamerged1
+intscore_combgmt[,3]=intscore_combgmt[,3] + arcs_datamerged2[,3] + arcs_datamerged3[,3] + arcs_datamerged4[,3] + arcs_datamerged5[,3] + arcs_datamerged6[,3] + arcs_datamerged7[,3] + arcs_datamerged8[,3] + arcs_datamerged9[,3]
+intscore_combgmt[,4]=intscore_combgmt[,4]+arcs_datamerged2[,4]+arcs_datamerged3[,4]+arcs_datamerged4[,4]+arcs_datamerged5[,4]+arcs_datamerged6[,4]+arcs_datamerged7[,4]+arcs_datamerged8[,4]+arcs_datamerged9[,4]
+intscore_combgmt[,4]=intscore_combgmt[,4]/9
+intscore_combgmt[,3]=intscore_combgmt[,3]/9
+
+```
+
+
+
+
+```{r}
+#.................ROC curve analysis for asia Data...........................
+PRROC_obj1 <- roc.curve(scores.class0 = intscore_combgmt[,3], weights.class0=labels_sachs[,3],curve=TRUE)
+PRROC_obj2 <- roc.curve(scores.class0 = intscore_pooled_kg[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj3 <- roc.curve(scores.class0 = intscore_pooled_marginal[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj4 <- roc.curve(scores.class0 = intscore_pooled_vsp[,3], weights.class0=labels_asia[,3],curve=TRUE)
+```
+
+```{r}
+#.................ROC curve analysis for asia Data...........................
+PRROC_obj1 <- pr.curve(scores.class0 = intscore_pooled[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj2 <- pr.curve(scores.class0 = intscore_pooled_kg[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj3 <- pr.curve(scores.class0 = intscore_pooled_marginal[,3], weights.class0=labels_asia[,3],curve=TRUE)
+PRROC_obj4 <- pr.curve(scores.class0 = intscore_pooled_vsp[,3], weights.class0=labels_asia[,3],curve=TRUE)
+```
